@@ -12,6 +12,7 @@ const Card = new mongoose.Schema({
   passcodeHash: String,
   photos: [{ url: String, publicId: String }],
   editTokenHash: String,
+  editCount: { type: Number, default: 0 },
   status: { type: String, enum: ['created', 'paid'], default: 'created' },
   razorpay: { orderId: { type: String, index: true }, paymentId: String },
   amount: Number,
