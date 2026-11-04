@@ -68,3 +68,8 @@ h1{font-size:2.6rem} h2{font-size:2rem}
 .form input,.form select,.form textarea{padding:11px;border-radius:12px;border:1px solid #e7b6c6;background:#fff;font:inherit;color:#7a2e4d;width:100%}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:70px}
 .btn:disabled{opacity:.6}
+
+.bloom{transform-box:fill-box;transform-origin:50% 100%;animation:bloom .7s cubic-bezier(.3,1.6,.5,1) both;animation-delay:var(--d,0s)}
+@keyframes bloom{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.bouquet{width:260px}.bouquet svg{width:100%;height:auto;display:block;animation:sway 4s ease-in-out 1.6s infinite;transform-origin:50% 100%}
+@keyframes sway{50%{transform:rotate(2deg)}}
