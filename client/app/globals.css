@@ -69,7 +69,12 @@ h1{font-size:2.6rem} h2{font-size:2rem}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:70px}
 .btn:disabled{opacity:.6}
 
+/* bouquet */
 .bloom{transform-box:fill-box;transform-origin:50% 100%;animation:bloom .7s cubic-bezier(.3,1.6,.5,1) both;animation-delay:var(--d,0s)}
 @keyframes bloom{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
-.bouquet{width:260px}.bouquet svg{width:100%;height:auto;display:block;animation:sway 4s ease-in-out 1.6s infinite;transform-origin:50% 100%}
-@keyframes sway{50%{transform:rotate(2deg)}}
+.bscene{position:relative;width:100%;height:470px}
+.bscene .bouquet{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:215px}
+.bouquet svg{width:100%;height:auto;display:block;animation:sway 4s ease-in-out 2.4s infinite;transform-origin:50% 100%}
+@keyframes sway{50%{transform:rotate(1.5deg)}}
+.bub{position:absolute;max-width:125px;background:#fff;border-radius:22px;padding:10px 14px;font-size:.85rem;line-height:1.25;color:#7a2e4d;box-shadow:0 6px 16px #c2557a2a;animation:pop .6s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:scale(.6) translateY(10px)}to{opacity:1;transform:none}}
