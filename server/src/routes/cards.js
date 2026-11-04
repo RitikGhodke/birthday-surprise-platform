@@ -1,3 +1,4 @@
+
 // import { Router } from 'express';
 // import multer from 'multer';
 // import bcrypt from 'bcryptjs';
@@ -7,6 +8,11 @@
 // import { sha } from './orders.js';
 
 // const router = Router();
+// const EDIT_DAYS = Number(process.env.EDIT_DAYS || 7), MAX_SAVES = Number(process.env.MAX_SAVES || 10);
+// const editInfo = (c) => {
+//   const until = new Date(c.createdAt.getTime() + EDIT_DAYS * 864e5);
+//   return { editUntil: until, editOpen: until > new Date(), savesLeft: Math.max(MAX_SAVES - (c.editCount || 0), 0) };
+// };
 // const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 5 },
 //   fileFilter: (_, f, cb) => cb(null, /^image\/(jpeg|png|webp)$/.test(f.mimetype)) });
 
@@ -22,7 +28,7 @@
 // };
 
 // // Owner apna card edit karne ke liye dekhta hai (passcode ke bina bhi)
-// router.get('/:slug/mine', owner, (req, res) => res.json({ ...resolve(req.card), passcodeSet: !!req.card.passcodeHash }));
+// router.get('/:slug/mine', owner, (req, res) => res.json({ ...resolve(req.card), passcodeSet: !!req.card.passcodeHash, ...editInfo(req.card) }));
 
 // router.get('/:slug', async (req, res) => {
 //   const c = await live(req.params.slug);
@@ -39,15 +45,19 @@
 // });
 
 // // Sab kuch editable: naam, date, style, options, words, letter, har title
-// const EDITABLE = ['recipientName', 'birthDate', 'style', 'options', 'balloonWords', 'letter', 'texts'];
+// const EDITABLE = ['balloonWords', 'letter', 'texts']; // naam, date, style, cake, bond payment ke baad lock
 // router.patch('/:slug', owner, async (req, res) => {
+//   const i = editInfo(req.card);
+//   if (!i.editOpen || i.savesLeft < 1) return res.status(403).json({ error: 'Edit ka time ya save limit khatam ho gaya' });
+//   req.card.editCount = (req.card.editCount || 0) + 1;
 //   for (const k of EDITABLE) if (k in req.body) req.card[k] = req.body[k];
 //   if ('passcode' in req.body) req.card.passcodeHash = req.body.passcode ? await bcrypt.hash(String(req.body.passcode), 8) : undefined;
 //   await req.card.save();
-//   res.json(resolve(req.card));
+//   res.json({ ...resolve(req.card), passcodeSet: !!req.card.passcodeHash, ...editInfo(req.card) });
 // });
 
 // router.post('/:slug/photos', owner, upload.array('photos', 5), async (req, res) => {
+//   if (!editInfo(req.card).editOpen) return res.status(403).json({ error: 'Edit ka time khatam ho gaya' });
 //   const room = 5 - req.card.photos.length;
 //   const files = (req.files || []).slice(0, Math.max(room, 0));
 //   for (const f of files) {
@@ -60,6 +70,7 @@
 // });
 
 // router.delete('/:slug/photos/:publicId', owner, async (req, res) => {
+//   if (!editInfo(req.card).editOpen) return res.status(403).json({ error: 'Edit ka time khatam ho gaya' });
 //   const id = decodeURIComponent(req.params.publicId);
 //   req.card.photos = req.card.photos.filter(p => p.publicId !== id);
 //   await cloudinary.uploader.destroy(id);
@@ -67,8 +78,6 @@
 //   res.json(resolve(req.card));
 // });
 // export default router;
-
-
 
 
 
@@ -95,6 +104,13 @@ const editInfo = (c) => {
   const until = new Date(c.createdAt.getTime() + EDIT_DAYS * 864e5);
   return { editUntil: until, editOpen: until > new Date(), savesLeft: Math.max(MAX_SAVES - (c.editCount || 0), 0) };
 };
+// Owner ke liye: photos me url + publicId (delete ke liye zaruri)
+const mine = (c) => ({
+  ...resolve(c),
+  photos: c.photos.map(p => ({ url: p.url, publicId: p.publicId })),
+  passcodeSet: !!c.passcodeHash,
+  ...editInfo(c)
+});
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 5 },
   fileFilter: (_, f, cb) => cb(null, /^image\/(jpeg|png|webp)$/.test(f.mimetype)) });
 
@@ -110,7 +126,7 @@ const owner = async (req, res, next) => {
 };
 
 // Owner apna card edit karne ke liye dekhta hai (passcode ke bina bhi)
-router.get('/:slug/mine', owner, (req, res) => res.json({ ...resolve(req.card), passcodeSet: !!req.card.passcodeHash, ...editInfo(req.card) }));
+router.get('/:slug/mine', owner, (req, res) => res.json(mine(req.card)));
 
 router.get('/:slug', async (req, res) => {
   const c = await live(req.params.slug);
@@ -126,7 +142,6 @@ router.post('/:slug/unlock', async (req, res) => {
   res.json(resolve(c));
 });
 
-// Sab kuch editable: naam, date, style, options, words, letter, har title
 const EDITABLE = ['balloonWords', 'letter', 'texts']; // naam, date, style, cake, bond payment ke baad lock
 router.patch('/:slug', owner, async (req, res) => {
   const i = editInfo(req.card);
@@ -135,7 +150,7 @@ router.patch('/:slug', owner, async (req, res) => {
   for (const k of EDITABLE) if (k in req.body) req.card[k] = req.body[k];
   if ('passcode' in req.body) req.card.passcodeHash = req.body.passcode ? await bcrypt.hash(String(req.body.passcode), 8) : undefined;
   await req.card.save();
-  res.json({ ...resolve(req.card), passcodeSet: !!req.card.passcodeHash, ...editInfo(req.card) });
+  res.json(mine(req.card));
 });
 
 router.post('/:slug/photos', owner, upload.array('photos', 5), async (req, res) => {
@@ -148,7 +163,7 @@ router.post('/:slug/photos', owner, upload.array('photos', 5), async (req, res) 
     req.card.photos.push({ url: r.secure_url, publicId: r.public_id });
   }
   await req.card.save();
-  res.json(resolve(req.card));
+  res.json(mine(req.card));
 });
 
 router.delete('/:slug/photos/:publicId', owner, async (req, res) => {
@@ -157,6 +172,6 @@ router.delete('/:slug/photos/:publicId', owner, async (req, res) => {
   req.card.photos = req.card.photos.filter(p => p.publicId !== id);
   await cloudinary.uploader.destroy(id);
   await req.card.save();
-  res.json(resolve(req.card));
+  res.json(mine(req.card));
 });
 export default router;
