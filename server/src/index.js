@@ -12,6 +12,7 @@ import { DEFAULTS } from './defaults.js';
 console.log('Razorpay key:', process.env.RAZORPAY_KEY_ID?.slice(0, 9));
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL }));
 app.post('/api/razorpay/webhook', express.raw({ type: 'application/json' }), webhook); // raw body zaruri
