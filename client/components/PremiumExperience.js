@@ -1,126 +1,196 @@
+
+
 // 'use client';
 // import React, { useState, useEffect, useRef } from 'react';
-// import { motion, AnimatePresence } from 'framer-motion';
+// import { createPortal } from 'react-dom';
+// import { motion } from 'framer-motion';
 // import confetti from 'canvas-confetti';
 // import { Sticker } from './Art';
 // import './premium.css';
 
-// const SCENES = ['intro', 'stars', 'wish', 'memories', 'letter', 'final'];
-// // 6 taare jo milkar heart banate hain (tap karte jao, line judti jaye)
-// const PTS = [[50, 90], [10, 38], [28, 14], [50, 34], [72, 14], [90, 38]];
-// const COLORS = ['#ff5f9e', '#ffd1e3', '#ffb347', '#ffffff'];
-// const seg = (a, b) => `M${a.join(' ')} L${b.join(' ')}`;
-
-// function fireworks() {
-//   const end = Date.now() + 3500;
-//   const go = () => {
-//     confetti({ particleCount: 5, angle: 60, spread: 70, origin: { x: 0, y: 0.8 }, colors: COLORS });
-//     confetti({ particleCount: 5, angle: 120, spread: 70, origin: { x: 1, y: 0.8 }, colors: COLORS });
-//     if (Date.now() < end) requestAnimationFrame(go);
-//   };
-//   go();
-//   confetti({ particleCount: 160, spread: 120, origin: { y: 0.55 }, colors: COLORS });
+// // Flow: lifafa -> heart par teer -> cake gir ke bane -> candle phoonk -> Little Moments (dil me photos)
+// //       -> wish (hold) -> memory tree (photo frames) -> letter -> last surprise
+// const SCENES = ['seal', 'arrows', 'cake', 'candle', 'photos', 'wish', 'tree', 'letter', 'final'];
+// const HEART = 'M50 88 C10 55 0 30 0 20 C0 8 10 0 22 0 C34 0 45 8 50 18 C55 8 66 0 78 0 C90 0 100 8 100 20 C100 30 90 55 50 88Z';
+// const COL = ['#ffd6e0', '#ff7aa8', '#ffe29a', '#ffffff'];
+// function love() {
+//   let shapes;
+//   try { shapes = [confetti.shapeFromText({ text: '💗', scalar: 2 }), 'circle']; } catch (e) { /* default shapes */ }
+//   confetti({ particleCount: 90, spread: 110, origin: { y: 0.6 }, colors: COL, scalar: 2, shapes });
 // }
 
 // export default function PremiumExperience({ card }) {
 //   const [i, setI] = useState(0), [k, setK] = useState(0);
 //   const next = () => setI(n => Math.min(n + 1, SCENES.length - 1));
-//   const s = SCENES[i], t = card.texts, pet = card.options?.friendSticker || 'bunny';
-//   const Btn = ({ children, onClick = next }) => <button className="px-btn" onClick={onClick}>{children}</button>;
-
-//   useEffect(() => {
-//     if (s !== 'final') return;
-//     const id = setTimeout(fireworks, 500);
-//     return () => clearTimeout(id);
-//   }, [s, k]);
-
-//   return <main className="px">
-//     <Sky /><Hearts />
-//     <div className="px-dots">{SCENES.map((_, n) => <i key={n} className={n <= i ? 'on' : ''} />)}</div>
-//     <AnimatePresence mode="wait">
-//       <motion.section key={s + k} className="px-scene"
-//         initial={{ opacity: 0, filter: 'blur(14px)', scale: 0.96 }} animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
-//         exit={{ opacity: 0, filter: 'blur(14px)' }} transition={{ duration: 0.6 }}>
-//         {s === 'intro' && <>
-//           <div className="px-glow">💖</div>
-//           <h1><Typed text={t.intro} /></h1>
-//           <p>{t.intro2}</p>
-//           <Btn>Begin ✨</Btn></>}
-//         {s === 'stars' && <Stars title={t.starsTitle} reasons={[t.r1, t.r2, t.r3, t.r4, t.r5, t.r6]} done={next} />}
-//         {s === 'wish' && <Wish title={t.wishTitle} hint={t.wishHint} done={next} />}
-//         {s === 'memories' && <Reel photos={card.photos || []} title={t.momentsTitle} done={next} />}
-//         {s === 'letter' && <Letter title={t.envelopeTitle} text={card.letter} btn={t.lastButton} done={next} />}
-//         {s === 'final' && <>
-//           <div className="px-pets"><Sticker kind={pet} /></div>
-//           <h1>{t.finalTitle} ❤️</h1><p>{t.finalSub}</p>
-//           <Btn onClick={() => { setI(0); setK(x => x + 1); }}>Replay</Btn></>}
-//       </motion.section>
-//     </AnimatePresence>
+//   const s = SCENES[i], t = card.texts, name = card.recipientName, pet = card.options?.friendSticker || 'bunny';
+//   return <main className="rx">
+//     <div className="rx-sun" /><Petals dense={s === 'final'} />
+//     <motion.section key={s + k} className="rx-scene" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+//       {s === 'seal' && <Seal t={t} done={next} />}
+//       {s === 'arrows' && <Arrows t={t} name={name} done={next} />}
+//       {s === 'cake' && <CakeBuild done={next} />}
+//       {s === 'candle' && <Candle done={next} />}
+//       {s === 'photos' && <Gallery photos={card.photos || []} title={t.momentsTitle || 'Little Moments'} done={next} />}
+//       {s === 'wish' && <Wish title={t.wishTitle || 'Make a wish'} hint={t.wishHint || 'Press and hold the heart'} done={next} />}
+//       {s === 'tree' && <Tree photos={card.treePhotos || []} done={next} />}
+//       {s === 'letter' && <Letter title={t.envelopeTitle} text={card.letter} btn={t.lastButton} done={next} />}
+//       {s === 'final' && <Final name={name} t={t} replay={() => { setI(0); setK(x => x + 1); }} />}
+//     </motion.section>
 //   </main>;
 // }
 
-// function Sky() {
-//   const ref = useRef(null);
+// function Petals({ dense }) {
+//   const [p, setP] = useState([]); // client par hi random (hydration error se bachne ke liye)
 //   useEffect(() => {
-//     const c = ref.current, x = c.getContext('2d'); let w, h, raf, shoot = null;
-//     const fit = () => { w = c.width = innerWidth; h = c.height = innerHeight; };
-//     fit(); addEventListener('resize', fit);
-//     const stars = Array.from({ length: 110 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.4 + 0.3, p: Math.random() * 6 }));
-//     const draw = t => {
-//       x.clearRect(0, 0, w, h); x.fillStyle = '#fff';
-//       for (const st of stars) { x.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(t / 1200 + st.p)); x.beginPath(); x.arc(st.x * w, st.y * h, st.r, 0, 7); x.fill(); }
-//       if (!shoot && Math.random() < 0.004) shoot = { x: Math.random() * w * 0.7, y: Math.random() * h * 0.4, l: 0 };
-//       if (shoot) {
-//         shoot.l += 9; x.globalAlpha = Math.max(1 - shoot.l / 160, 0); x.strokeStyle = '#ffd6e6'; x.lineWidth = 2;
-//         x.beginPath(); x.moveTo(shoot.x + shoot.l, shoot.y + shoot.l * 0.6); x.lineTo(shoot.x + shoot.l - 50, shoot.y + (shoot.l - 50) * 0.6); x.stroke();
-//         if (shoot.l > 160) shoot = null;
-//       }
-//       raf = requestAnimationFrame(draw);
-//     };
-//     raf = requestAnimationFrame(draw);
-//     return () => { cancelAnimationFrame(raf); removeEventListener('resize', fit); };
-//   }, []);
-//   return <canvas ref={ref} className="px-sky" />;
+//     setP(Array.from({ length: dense ? 34 : 18 }, (_, n) => ({ n, l: Math.random() * 100, d: 9 + Math.random() * 9, s: -Math.random() * 14, f: 14 + Math.random() * 18, e: ['🌹', '🌸', '💗'][n % 3] })));
+//   }, [dense]);
+//   return p.map(x => <span key={(dense ? 'd' : 'n') + x.n} className="rx-petal" style={{ left: x.l + '%', animationDuration: x.d + 's', animationDelay: x.s + 's', fontSize: x.f }}>{x.e}</span>);
 // }
 
-// function Hearts() {
-//   const [h, setH] = useState([]); // client par hi random, hydration error se bachne ke liye
-//   useEffect(() => { setH(Array.from({ length: 14 }, (_, n) => ({ n, l: Math.random() * 100, d: 8 + Math.random() * 8, s: Math.random() * 10, f: 12 + Math.random() * 16 }))); }, []);
-//   return h.map(x => <span key={x.n} className="px-heart" style={{ left: x.l + '%', animationDuration: x.d + 's', animationDelay: x.s + 's', fontSize: x.f }}>{x.n % 3 ? '💗' : '✨'}</span>);
+// /* ---------- 1. Lifafa (same as before) ---------- */
+// function Seal({ t, done }) {
+//   const [open, setOpen] = useState(false);
+//   return <>
+//     <p className="rx-hand">{t.intro2}</p>
+//     <div className="rx-env" onClick={() => setOpen(true)}>
+//       <div className="rx-back" />
+//       <motion.div className="rx-paper" animate={{ y: open ? -120 : 0 }} transition={{ delay: 0.5, duration: 0.9, ease: 'easeOut' }}>
+//         <b>{t.intro}</b><span>💌</span></motion.div>
+//       <div className="rx-front" />
+//       <motion.div className="rx-flap" animate={{ rotateX: open ? 180 : 0, zIndex: open ? 0 : 4 }} transition={{ duration: 0.7 }} />
+//       <motion.div className="rx-wax" animate={open ? { scale: [1, 1.4, 0], opacity: [1, 1, 0] } : { scale: [1, 1.08, 1] }}
+//         transition={open ? { duration: 0.6 } : { repeat: Infinity, duration: 1.6 }}>♥</motion.div>
+//     </div>
+//     {open
+//       ? <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }} onClick={done}>Continue</motion.button>
+//       : <p className="rx-small">Tap the seal</p>}</>;
 // }
 
-// function Typed({ text }) {
-//   const [n, setN] = useState(0);
-//   useEffect(() => {
-//     if (n >= text.length) return;
-//     const id = setTimeout(() => setN(n + 1), 55);
-//     return () => clearTimeout(id);
-//   }, [n, text]);
-//   return <>{text.slice(0, n)}<span className="px-caret" /></>;
+// /* ---------- 2. Heart par teer, phir Happy Birthday ---------- */
+// const ANGLES = [-22, 165, 68];
+// function Arrows({ t, name, done }) {
+//   const [n, setN] = useState(0), [boom, setBoom] = useState(false);
+//   const timers = useRef([]);
+//   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+//   const hit = () => {
+//     if (boom || n >= 3) return;
+//     const m = n + 1; setN(m);
+//     if (m === 3) {
+//       timers.current.push(setTimeout(() => { setBoom(true); love(); }, 800));
+//       timers.current.push(setTimeout(done, 5200));
+//     }
+//   };
+//   return <>
+//     <h2>{t.strikeTitle || 'Aim for the heart'}</h2>
+//     <div className="rx-hit" onClick={hit}>
+//       <motion.svg key={n} viewBox="0 0 100 90" className="rx-hitheart"
+//         animate={n ? { scale: [1, 0.82, 1.12, 1] } : { scale: [1, 1.06, 1] }}
+//         transition={n ? { duration: 0.45 } : { repeat: Infinity, duration: 1.4 }}>
+//         <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+//         <path d={HEART} fill="url(#hg)" />
+//       </motion.svg>
+//       {ANGLES.slice(0, n).map((a, j) => <div key={j} className="rx-arrowwrap" style={{ transform: `rotate(${a}deg)` }}>
+//         <motion.svg viewBox="0 0 130 20" className="rx-arrow" initial={{ x: -320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.3, ease: 'easeIn' }}>
+//           <line x1="10" y1="10" x2="118" y2="10" stroke="#fff3d6" strokeWidth="3" strokeLinecap="round" />
+//           <polygon points="116,2 130,10 116,18" fill="#ffd59a" />
+//           <polygon points="0,1 16,10 0,19 6,10" fill="#ffffff" />
+//         </motion.svg></div>)}
+//     </div>
+//     <p className="rx-small">{n >= 3 ? '💘' : `Tap the heart to shoot an arrow (${n}/3)`}</p>
+//     {boom && typeof document !== 'undefined' && createPortal(
+//       <div className="rx-boom">
+//         <motion.i className="rx-circle" initial={{ scale: 0 }} animate={{ scale: 34 }} transition={{ duration: 1.1, ease: 'easeIn' }} />
+//         <motion.div className="rx-hb" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1, duration: 0.7 }}>
+//           <small>make a wish...</small><h1>Happy Birthday</h1><b>{name}</b>
+//         </motion.div>
+//       </div>, document.body)}</>;
 // }
 
-// function Stars({ title, reasons, done }) {
-//   const [n, setN] = useState(0);
-//   const all = n >= PTS.length;
-//   const tap = idx => { if (idx === n) setN(n + 1); };
+// /* ---------- 3. Cake upar se gir ke banta hai ---------- */
+// function Piece({ i, build, children }) {
+//   if (!build) return <g>{children}</g>;
+//   return <motion.g initial={{ y: -360, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', bounce: 0.35, duration: 0.9, delay: 0.4 + i * 0.8 }}>{children}</motion.g>;
+// }
+// function PinkCake({ lit = false, build = false }) {
+//   return <svg viewBox="0 0 200 220" aria-label="cake">
+//     <Piece i={0} build={build}><ellipse cx="100" cy="196" rx="88" ry="10" fill="#fff3f7" /><ellipse cx="100" cy="192" rx="80" ry="8" fill="#f6d9e3" /></Piece>
+//     <Piece i={1} build={build}><rect x="24" y="138" width="152" height="54" rx="14" fill="#f48fb1" /><rect x="24" y="138" width="152" height="15" rx="8" fill="#fff" />
+//       {[44, 76, 108, 140].map(x => <circle key={x} cx={x + 6} cy="172" r="5" fill="#ffe29a" />)}</Piece>
+//     <Piece i={2} build={build}><rect x="44" y="96" width="112" height="44" rx="12" fill="#f7a8c4" /><rect x="44" y="96" width="112" height="13" rx="7" fill="#fff" /></Piece>
+//     <Piece i={3} build={build}><rect x="64" y="58" width="72" height="40" rx="11" fill="#f9bfd4" /><rect x="64" y="58" width="72" height="12" rx="6" fill="#fff" />
+//       <circle cx="84" cy="86" r="4" fill="#ff7aa8" /><circle cx="116" cy="86" r="4" fill="#ff7aa8" /></Piece>
+//     <Piece i={4} build={build}><circle cx="100" cy="52" r="7" fill="#e0245e" /><path d="M100 46 q6 -10 12 -12" stroke="#4f7f5a" strokeWidth="2" fill="none" /></Piece>
+//     <Piece i={5} build={build}><rect x="96" y="14" width="8" height="30" rx="3" fill="#ffd166" />
+//       {lit && <g className="fl"><ellipse cx="100" cy="6" rx="7" ry="12" fill="#ffb347" /><ellipse cx="100" cy="9" rx="3.5" ry="7" fill="#fff3b0" /></g>}</Piece>
+//   </svg>;
+// }
+// function CakeBuild({ done }) {
+//   useEffect(() => { const id = setTimeout(done, 6000); return () => clearTimeout(id); }, []);
+//   return <>
+//     <h2>First things first 🎂</h2>
+//     <div className="rx-cake"><PinkCake build /></div>
+//     <p className="rx-small">Your cake is being made...</p></>;
+// }
+
+// /* ---------- 4. Candle: phoonk maro ya tap karo ---------- */
+// function Candle({ done }) {
+//   const [lit, setLit] = useState(true);
+//   const [msg, setMsg] = useState('');
+//   const blow = () => { if (!lit) return; setLit(false); love(); setTimeout(done, 1600); };
+//   async function listen() {
+//     try {
+//       const stream = await navigator.mediaDevices.getUserMedia({
+//         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+//       const ctx = new (window.AudioContext || window.webkitAudioContext)(), an = ctx.createAnalyser(); an.fftSize = 1024;
+//       await ctx.resume();
+//       ctx.createMediaStreamSource(stream).connect(an);
+//       const buf = new Float32Array(an.fftSize);
+//       setMsg('Now blow into the mic...');
+//       const t0 = performance.now(); let base = 0, n = 0, hits = 0;
+//       const tick = () => {
+//         an.getFloatTimeDomainData(buf);
+//         let sum = 0; for (const v of buf) sum += v * v;
+//         const rms = Math.sqrt(sum / buf.length);
+//         if (performance.now() - t0 < 600) { base += rms; n++; }
+//         else {
+//           const limit = Math.max((base / Math.max(n, 1)) * 3, 0.05);
+//           hits = rms > limit ? hits + 1 : 0;
+//           if (hits >= 3) { blow(); stream.getTracks().forEach(x => x.stop()); ctx.close(); return; }
+//         }
+//         requestAnimationFrame(tick);
+//       };
+//       tick();
+//     } catch (e) {
+//       const n = e?.name || '';
+//       setMsg(!navigator.mediaDevices ? 'Mic is not supported in this browser. Open in Chrome/Safari, or tap the cake'
+//         : n === 'NotAllowedError' ? "Mic is blocked. Allow Microphone in your browser's site settings, or tap the cake"
+//         : 'Mic failed (' + n + '). Tap the cake');
+//     }
+//   }
+//   return <>
+//     <h2>Blow the candle</h2>
+//     <div className="rx-cake" onClick={blow}><PinkCake lit={lit} /></div>
+//     <button className="rx-btn" onClick={listen}>🎤 Blow into the mic</button><div className="rx-small">{msg}</div></>;
+// }
+
+// /* ---------- 5. Little Moments (dil me photos) ---------- */
+// function Gallery({ photos, title, done }) {
+//   const pos = [[10, 0, 130], [160, 40, 115], [20, 150, 120], [165, 190, 125], [90, 290, 105]];
+//   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
 //   return <>
 //     <h2>{title}</h2>
-//     <svg viewBox="0 0 100 100" className="px-svg">
-//       {all && <motion.path d={'M' + PTS.map(p => p.join(' ')).join(' L') + 'Z'} fill="#ff5f9e33" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2 }} />}
-//       {PTS.slice(1, n).map((p, j) => <motion.path key={j} d={seg(PTS[j], p)} stroke="#ff8fb5" strokeWidth=".8" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} />)}
-//       {all && <motion.path d={seg(PTS[5], PTS[0])} stroke="#ff8fb5" strokeWidth=".8" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} />}
-//       {PTS.map(([x, y], idx) => <g key={idx} onClick={() => tap(idx)} style={{ cursor: idx === n ? 'pointer' : 'default' }}>
-//         <circle cx={x} cy={y} r="9" fill="transparent" />
-//         <motion.circle cx={x} cy={y} r={idx < n ? 3.2 : 2} fill={idx < n ? '#ffd1e3' : '#fff'} style={{ filter: 'drop-shadow(0 0 3px #ff8fb5)' }}
-//           animate={idx === n ? { opacity: [1, 0.3, 1] } : { opacity: 1 }} transition={{ repeat: Infinity, duration: 1.2 }} />
-//       </g>)}
-//     </svg>
-//     <div className="px-reason"><AnimatePresence mode="wait">
-//       <motion.p key={n} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-//         {n === 0 ? 'Chamakte taare par tap karo ✨' : reasons[n - 1]}</motion.p></AnimatePresence></div>
-//     {all && <button className="px-btn" onClick={done}>Next</button>}</>;
+//     <button className="rx-btn" onClick={done}>Next</button>
+//     <div className="rx-gal">{items.map((p, n) => <motion.svg key={n} viewBox="0 0 100 90" className="rx-hf" style={{ left: pos[n][0], top: pos[n][1], width: pos[n][2] }}
+//       animate={{ y: [0, -10, 0], rotate: n % 2 ? [4, -2, 4] : [-4, 2, -4] }} transition={{ repeat: Infinity, duration: 4 + n, ease: 'easeInOut' }}>
+//       <defs><clipPath id={'hc' + n}><path d={HEART} /></clipPath></defs>
+//       <g clipPath={`url(#hc${n})`}>
+//         {p ? <image href={p} width="100" height="90" preserveAspectRatio="xMidYMid slice" /> : <><rect width="100" height="90" fill="#ffd0dd" /><text x="50" y="52" textAnchor="middle" fontSize="26">📸</text></>}
+//       </g>
+//       <path d={HEART} fill="none" stroke="#fff" strokeWidth="3" />
+//     </motion.svg>)}</div></>;
 // }
 
+// /* ---------- 6. Wish: heart ko dabake pakdo, lantern udta hai ---------- */
 // function Wish({ title, hint, done }) {
 //   const [p, setP] = useState(0), [sent, setSent] = useState(false), tm = useRef();
 //   const start = () => { if (!sent) { clearInterval(tm.current); tm.current = setInterval(() => setP(v => v + 2.2), 30); } };
@@ -128,39 +198,58 @@
 //   useEffect(() => () => clearInterval(tm.current), []);
 //   useEffect(() => {
 //     if (p < 100 || sent) return;
-//     clearInterval(tm.current); setSent(true);
-//     confetti({ particleCount: 90, spread: 100, origin: { y: 0.5 }, scalar: 2, shapes: [confetti.shapeFromText({ text: '❤️', scalar: 2 })] });
+//     clearInterval(tm.current); setSent(true); love();
 //   }, [p]);
 //   return <>
-//     <h2>{title}</h2><p>{hint}</p>
-//     <div className="px-wish" onPointerDown={start} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onContextMenu={e => e.preventDefault()}>
+//     <h2>{title}</h2><p className="rx-small">{hint}</p>
+//     <div className="rx-wish" onPointerDown={start} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onContextMenu={e => e.preventDefault()}>
 //       <svg viewBox="0 0 100 100">
-//         <circle cx="50" cy="50" r="46" fill="none" stroke="#ffffff22" strokeWidth="4" />
-//         <circle cx="50" cy="50" r="46" fill="none" stroke="#ff8fb5" strokeWidth="4" strokeLinecap="round" strokeDasharray="289" strokeDashoffset={289 * (1 - Math.min(p, 100) / 100)} />
+//         <circle cx="50" cy="50" r="46" fill="none" stroke="#ffffff44" strokeWidth="4" />
+//         <circle cx="50" cy="50" r="46" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeDasharray="289" strokeDashoffset={289 * (1 - Math.min(p, 100) / 100)} />
 //       </svg>
 //       <span style={{ transform: `scale(${1 + Math.min(p, 100) / 300})` }}>{sent ? '✨' : '❤️'}</span>
-//       {sent && <motion.div className="px-lantern" initial={{ y: 0, opacity: 1 }} animate={{ y: -420, opacity: 0, scale: 0.5 }} transition={{ duration: 3.5 }}>🏮</motion.div>}
+//       {sent && <motion.div className="rx-lantern" initial={{ y: 0, opacity: 1 }} animate={{ y: -420, opacity: 0, scale: 0.5 }} transition={{ duration: 3.5 }}>🏮</motion.div>}
 //     </div>
-//     {sent && <motion.button className="px-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} onClick={done}>Next</motion.button>}</>;
+//     {sent && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} onClick={done}>Next</motion.button>}</>;
 // }
 
-// function Reel({ photos, title, done }) {
-//   const items = photos.length ? photos : [null, null, null];
-//   const [n, setN] = useState(0);
-//   useEffect(() => {
-//     const id = setInterval(() => setN(v => (v + 1) % items.length), 3200);
-//     return () => clearInterval(id);
-//   }, [items.length]);
+// /* ---------- 7. Memory tree: video jaisa heart-tree, photo frames latakte hain ---------- */
+// const CANOPY = (() => {
+//   const out = [];
+//   [[1, 40], [0.72, 28], [0.45, 16], [0.2, 6]].forEach(([k, cnt], r) => {
+//     for (let n = 0; n < cnt; n++) {
+//       const a = (n / cnt) * Math.PI * 2 + r * 0.4;
+//       const x = 16 * Math.sin(a) ** 3, y = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+//       out.push({ l: 50 + x * k * 2.6, tp: 38 - y * k * 1.9, f: 13 + ((n * 7 + r * 3) % 9), c: ['#ff9ab8', '#ffb3c6', '#ffe29a', '#ff7aa8'][(n + r) % 4], d: 1.2 + (out.length * 0.035) });
+//     }
+//   });
+//   return out;
+// })();
+// const FRAMES = [[30, 30, -6], [70, 28, 5], [50, 48, -2], [32, 60, 4], [68, 58, -5]];
+// function Tree({ photos, done }) {
+//   const [sel, setSel] = useState(null), [ready, setReady] = useState(false);
+//   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
+//   useEffect(() => { const id = setTimeout(() => setReady(true), 4200); return () => clearTimeout(id); }, []);
 //   return <>
-//     <h2>{title}</h2>
-//     <div className="px-reel"><AnimatePresence mode="wait">
-//       <motion.div key={n} className="px-pol" initial={{ opacity: 0, x: 80, rotate: 6 }} animate={{ opacity: 1, x: 0, rotate: n % 2 ? 2 : -2 }}
-//         exit={{ opacity: 0, x: -80, rotate: -6 }} transition={{ duration: 0.6 }}>
-//         <div className="im">{items[n] ? <img src={items[n]} alt="" /> : '📸'}</div><b>Moment {n + 1}</b>
-//       </motion.div></AnimatePresence></div>
-//     <button className="px-btn" onClick={done}>Next</button></>;
+//     <h2>Our Tree of Memories 🌳</h2>
+//     <div className="rx-tree">
+//       <svg viewBox="0 0 300 340" className="rx-trunk">
+//         <motion.path d="M150 340 C150 290 148 250 150 200 M150 240 C120 220 105 198 85 172 M150 228 C180 208 198 188 215 162 M150 208 C150 182 150 160 150 140"
+//           stroke="#5a3a2a" strokeWidth="9" strokeLinecap="round" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.6 }} />
+//       </svg>
+//       {CANOPY.map((h, n) => <span key={n} className="rx-leaf" style={{ left: h.l + '%', top: h.tp + '%', fontSize: h.f, color: h.c, animationDelay: h.d + 's' }}>♥</span>)}
+//       {items.map((p, n) => <motion.button key={n} className="rx-frame" style={{ left: FRAMES[n][0] + '%', top: FRAMES[n][1] + '%', rotate: FRAMES[n][2] }}
+//         initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 2.4 + n * 0.4, type: 'spring' }} onClick={() => setSel(p || 'ph')}>
+//         {p ? <img src={p} alt="" /> : <span>📸</span>}</motion.button>)}
+//     </div>
+//     <p className="rx-small">Tap any frame</p>
+//     {ready && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={done}>Next</motion.button>}
+//     {sel && typeof document !== 'undefined' && createPortal(
+//       <div className="rx-zoom" onClick={() => setSel(null)}>
+//         <div className="rx-zoomcard">{sel === 'ph' ? <span>📸</span> : <img src={sel} alt="" />}</div></div>, document.body)}</>;
 // }
 
+// /* ---------- 8. Letter + 9. Final (same as before) ---------- */
 // function Letter({ title, text, btn, done }) {
 //   const [n, setN] = useState(0), box = useRef();
 //   const fin = n >= text.length;
@@ -172,9 +261,652 @@
 //   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [n]);
 //   return <>
 //     <h2>{title}</h2>
-//     <div className="px-letter" ref={box}>{text.slice(0, n)}{!fin && <span className="px-caret" />}</div>
-//     {fin ? <button className="px-btn" onClick={done}>{btn}</button> : <button className="px-skip" onClick={() => setN(text.length)}>skip</button>}</>;
+//     <div className="rx-letter" ref={box}>{text.slice(0, n)}{!fin && <span className="rx-caret" />}</div>
+//     {fin ? <button className="rx-btn" onClick={done}>{btn}</button> : <button className="rx-link" onClick={() => setN(text.length)}>skip</button>}</>;
 // }
+
+// function Final({ name, t, replay }) {
+//   useEffect(() => {
+//     const a = setTimeout(love, 500), b = setTimeout(love, 1500);
+//     return () => { clearTimeout(a); clearTimeout(b); };
+//   }, []);
+//   return <>
+//     <motion.svg viewBox="0 0 100 90" className="rx-bigsvg" animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 1.4 }}>
+//       <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+//       <path d={HEART} fill="url(#fg)" />
+//       <text x="50" y="46" textAnchor="middle" className="rx-hname" fontSize={Math.min(16, 120 / Math.max(name.length, 1))}>{name}</text>
+//     </motion.svg>
+//     <h1>{t.finalTitle}</h1><p className="rx-hand">{t.finalSub}</p>
+//     <button className="rx-btn" onClick={replay}>Watch again</button></>;
+// }
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+// import React, { useState, useEffect, useRef } from 'react';
+// import { createPortal } from 'react-dom';
+// import { motion } from 'framer-motion';
+// import confetti from 'canvas-confetti';
+// import { Sticker } from './Art';
+// import './premium.css';
+
+// // Flow: lifafa -> heart par teer -> cake gir ke bane -> candle phoonk -> Little Moments (dil me photos)
+// //       -> catch the hearts (game) -> memory tree (photo frames) -> letter -> last surprise
+// const SCENES = ['seal', 'arrows', 'cake', 'candle', 'photos', 'catch', 'tree', 'letter', 'final'];
+// const HEART = 'M50 88 C10 55 0 30 0 20 C0 8 10 0 22 0 C34 0 45 8 50 18 C55 8 66 0 78 0 C90 0 100 8 100 20 C100 30 90 55 50 88Z';
+// const COL = ['#ffd6e0', '#ff7aa8', '#ffe29a', '#ffffff'];
+// function love() {
+//   let shapes;
+//   try { shapes = [confetti.shapeFromText({ text: '💗', scalar: 2 }), 'circle']; } catch (e) { /* default shapes */ }
+//   confetti({ particleCount: 90, spread: 110, origin: { y: 0.6 }, colors: COL, scalar: 2, shapes });
+// }
+
+// export default function PremiumExperience({ card }) {
+//   const [i, setI] = useState(0), [k, setK] = useState(0);
+//   const next = () => setI(n => Math.min(n + 1, SCENES.length - 1));
+//   const s = SCENES[i], t = card.texts, name = card.recipientName, pet = card.options?.friendSticker || 'bunny';
+//   return <main className="rx">
+//     <div className="rx-sun" /><Petals dense={s === 'final'} />
+//     <motion.section key={s + k} className="rx-scene" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+//       {s === 'seal' && <Seal t={t} done={next} />}
+//       {s === 'arrows' && <Arrows t={t} name={name} done={next} />}
+//       {s === 'cake' && <CakeBuild done={next} />}
+//       {s === 'candle' && <Candle done={next} />}
+//       {s === 'photos' && <Gallery photos={card.photos || []} title={t.momentsTitle || 'Little Moments'} done={next} />}
+//       {s === 'catch' && <Catch title={t.catchTitle || 'Catch the hearts'} hint={t.catchHint || 'Tap 10 falling hearts'} done={next} />}
+//       {s === 'tree' && <Tree photos={card.treePhotos || []} done={next} />}
+//       {s === 'letter' && <Letter title={t.envelopeTitle} text={card.letter} btn={t.lastButton} done={next} />}
+//       {s === 'final' && <Final name={name} t={t} replay={() => { setI(0); setK(x => x + 1); }} />}
+//     </motion.section>
+//   </main>;
+// }
+
+// function Petals({ dense }) {
+//   const [p, setP] = useState([]); // client par hi random (hydration error se bachne ke liye)
+//   useEffect(() => {
+//     setP(Array.from({ length: dense ? 34 : 18 }, (_, n) => ({ n, l: Math.random() * 100, d: 9 + Math.random() * 9, s: -Math.random() * 14, f: 14 + Math.random() * 18, e: ['🌹', '🌸', '💗'][n % 3] })));
+//   }, [dense]);
+//   return p.map(x => <span key={(dense ? 'd' : 'n') + x.n} className="rx-petal" style={{ left: x.l + '%', animationDuration: x.d + 's', animationDelay: x.s + 's', fontSize: x.f }}>{x.e}</span>);
+// }
+
+// /* ---------- 1. Lifafa (same as before) ---------- */
+// function Seal({ t, done }) {
+//   const [open, setOpen] = useState(false);
+//   return <>
+//     <p className="rx-hand">{t.intro2}</p>
+//     <div className="rx-env" onClick={() => setOpen(true)}>
+//       <div className="rx-back" />
+//       <motion.div className="rx-paper" animate={{ y: open ? -120 : 0 }} transition={{ delay: 0.5, duration: 0.9, ease: 'easeOut' }}>
+//         <b>{t.intro}</b><span>💌</span></motion.div>
+//       <div className="rx-front" />
+//       <motion.div className="rx-flap" animate={{ rotateX: open ? 180 : 0, zIndex: open ? 0 : 4 }} transition={{ duration: 0.7 }} />
+//       <motion.div className="rx-wax" animate={open ? { scale: [1, 1.4, 0], opacity: [1, 1, 0] } : { scale: [1, 1.08, 1] }}
+//         transition={open ? { duration: 0.6 } : { repeat: Infinity, duration: 1.6 }}>♥</motion.div>
+//     </div>
+//     {open
+//       ? <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }} onClick={done}>Continue</motion.button>
+//       : <p className="rx-small">Tap the seal</p>}</>;
+// }
+
+// /* ---------- 2. Heart par teer, phir Happy Birthday ---------- */
+// const ANGLES = [-22, 165, 68];
+// function Arrows({ t, name, done }) {
+//   const [n, setN] = useState(0), [boom, setBoom] = useState(false);
+//   const timers = useRef([]);
+//   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+//   const hit = () => {
+//     if (boom || n >= 3) return;
+//     const m = n + 1; setN(m);
+//     if (m === 3) {
+//       timers.current.push(setTimeout(() => { setBoom(true); love(); }, 800));
+//       timers.current.push(setTimeout(done, 5200));
+//     }
+//   };
+//   return <>
+//     <h2>{t.strikeTitle || 'Aim for the heart'}</h2>
+//     <div className="rx-hit" onClick={hit}>
+//       <motion.svg key={n} viewBox="0 0 100 90" className="rx-hitheart"
+//         animate={n ? { scale: [1, 0.82, 1.12, 1] } : { scale: [1, 1.06, 1] }}
+//         transition={n ? { duration: 0.45 } : { repeat: Infinity, duration: 1.4 }}>
+//         <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+//         <path d={HEART} fill="url(#hg)" />
+//       </motion.svg>
+//       {ANGLES.slice(0, n).map((a, j) => <div key={j} className="rx-arrowwrap" style={{ transform: `rotate(${a}deg)` }}>
+//         <motion.svg viewBox="0 0 130 20" className="rx-arrow" initial={{ x: -320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.3, ease: 'easeIn' }}>
+//           <line x1="10" y1="10" x2="118" y2="10" stroke="#fff3d6" strokeWidth="3" strokeLinecap="round" />
+//           <polygon points="116,2 130,10 116,18" fill="#ffd59a" />
+//           <polygon points="0,1 16,10 0,19 6,10" fill="#ffffff" />
+//         </motion.svg></div>)}
+//     </div>
+//     <p className="rx-small">{n >= 3 ? '💘' : `Tap the heart to shoot an arrow (${n}/3)`}</p>
+//     {boom && typeof document !== 'undefined' && createPortal(
+//       <div className="rx-boom">
+//         <motion.i className="rx-circle" initial={{ scale: 0 }} animate={{ scale: 34 }} transition={{ duration: 1.1, ease: 'easeIn' }} />
+//         <motion.div className="rx-hb" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1, duration: 0.7 }}>
+//           <small>make a wish...</small><h1>Happy Birthday</h1><b>{name}</b>
+//         </motion.div>
+//       </div>, document.body)}</>;
+// }
+
+// /* ---------- 3. Cake upar se gir ke banta hai ---------- */
+// function Piece({ i, build, children }) {
+//   if (!build) return <g>{children}</g>;
+//   return <motion.g initial={{ y: -360, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', bounce: 0.35, duration: 0.9, delay: 0.4 + i * 0.8 }}>{children}</motion.g>;
+// }
+// function PinkCake({ lit = false, build = false }) {
+//   return <svg viewBox="0 0 200 220" aria-label="cake">
+//     <Piece i={0} build={build}><ellipse cx="100" cy="196" rx="88" ry="10" fill="#fff3f7" /><ellipse cx="100" cy="192" rx="80" ry="8" fill="#f6d9e3" /></Piece>
+//     <Piece i={1} build={build}><rect x="24" y="138" width="152" height="54" rx="14" fill="#f48fb1" /><rect x="24" y="138" width="152" height="15" rx="8" fill="#fff" />
+//       {[44, 76, 108, 140].map(x => <circle key={x} cx={x + 6} cy="172" r="5" fill="#ffe29a" />)}</Piece>
+//     <Piece i={2} build={build}><rect x="44" y="96" width="112" height="44" rx="12" fill="#f7a8c4" /><rect x="44" y="96" width="112" height="13" rx="7" fill="#fff" /></Piece>
+//     <Piece i={3} build={build}><rect x="64" y="58" width="72" height="40" rx="11" fill="#f9bfd4" /><rect x="64" y="58" width="72" height="12" rx="6" fill="#fff" />
+//       <circle cx="84" cy="86" r="4" fill="#ff7aa8" /><circle cx="116" cy="86" r="4" fill="#ff7aa8" /></Piece>
+//     <Piece i={4} build={build}><circle cx="100" cy="52" r="7" fill="#e0245e" /><path d="M100 46 q6 -10 12 -12" stroke="#4f7f5a" strokeWidth="2" fill="none" /></Piece>
+//     <Piece i={5} build={build}><rect x="96" y="14" width="8" height="30" rx="3" fill="#ffd166" />
+//       {lit && <g className="fl"><ellipse cx="100" cy="6" rx="7" ry="12" fill="#ffb347" /><ellipse cx="100" cy="9" rx="3.5" ry="7" fill="#fff3b0" /></g>}</Piece>
+//   </svg>;
+// }
+// function CakeBuild({ done }) {
+//   useEffect(() => { const id = setTimeout(done, 6000); return () => clearTimeout(id); }, []);
+//   return <>
+//     <h2>First things first 🎂</h2>
+//     <div className="rx-cake"><PinkCake build /></div>
+//     <p className="rx-small">Your cake is being made...</p></>;
+// }
+
+// /* ---------- 4. Candle: phoonk maro ya tap karo ---------- */
+// function Candle({ done }) {
+//   const [lit, setLit] = useState(true);
+//   const [msg, setMsg] = useState('');
+//   const blow = () => { if (!lit) return; setLit(false); love(); setTimeout(done, 1600); };
+//   async function listen() {
+//     try {
+//       const stream = await navigator.mediaDevices.getUserMedia({
+//         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+//       const ctx = new (window.AudioContext || window.webkitAudioContext)(), an = ctx.createAnalyser(); an.fftSize = 1024;
+//       await ctx.resume();
+//       ctx.createMediaStreamSource(stream).connect(an);
+//       const buf = new Float32Array(an.fftSize);
+//       setMsg('Now blow into the mic...');
+//       const t0 = performance.now(); let base = 0, n = 0, hits = 0;
+//       const tick = () => {
+//         an.getFloatTimeDomainData(buf);
+//         let sum = 0; for (const v of buf) sum += v * v;
+//         const rms = Math.sqrt(sum / buf.length);
+//         if (performance.now() - t0 < 600) { base += rms; n++; }
+//         else {
+//           const limit = Math.max((base / Math.max(n, 1)) * 3, 0.05);
+//           hits = rms > limit ? hits + 1 : 0;
+//           if (hits >= 3) { blow(); stream.getTracks().forEach(x => x.stop()); ctx.close(); return; }
+//         }
+//         requestAnimationFrame(tick);
+//       };
+//       tick();
+//     } catch (e) {
+//       const n = e?.name || '';
+//       setMsg(!navigator.mediaDevices ? 'Mic is not supported in this browser. Open in Chrome/Safari, or tap the cake'
+//         : n === 'NotAllowedError' ? "Mic is blocked. Allow Microphone in your browser's site settings, or tap the cake"
+//         : 'Mic failed (' + n + '). Tap the cake');
+//     }
+//   }
+//   return <>
+//     <h2>Blow the candle</h2>
+//     <div className="rx-cake" onClick={blow}><PinkCake lit={lit} /></div>
+//     <button className="rx-btn" onClick={listen}>🎤 Blow into the mic</button><div className="rx-small">{msg}</div></>;
+// }
+
+// /* ---------- 5. Little Moments (dil me photos) ---------- */
+// function Gallery({ photos, title, done }) {
+//   const pos = [[10, 0, 130], [160, 40, 115], [20, 150, 120], [165, 190, 125], [90, 290, 105]];
+//   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
+//   return <>
+//     <h2>{title}</h2>
+//     <button className="rx-btn" onClick={done}>Next</button>
+//     <div className="rx-gal">{items.map((p, n) => <motion.svg key={n} viewBox="0 0 100 90" className="rx-hf" style={{ left: pos[n][0], top: pos[n][1], width: pos[n][2] }}
+//       animate={{ y: [0, -10, 0], rotate: n % 2 ? [4, -2, 4] : [-4, 2, -4] }} transition={{ repeat: Infinity, duration: 4 + n, ease: 'easeInOut' }}>
+//       <defs><clipPath id={'hc' + n}><path d={HEART} /></clipPath></defs>
+//       <g clipPath={`url(#hc${n})`}>
+//         {p ? <image href={p} width="100" height="90" preserveAspectRatio="xMidYMid slice" /> : <><rect width="100" height="90" fill="#ffd0dd" /><text x="50" y="52" textAnchor="middle" fontSize="26">📸</text></>}
+//       </g>
+//       <path d={HEART} fill="none" stroke="#fff" strokeWidth="3" />
+//     </motion.svg>)}</div></>;
+// }
+
+// /* ---------- 6. Catch the hearts: girte hue hearts tap karo ---------- */
+// function Catch({ title, hint, done }) {
+//   const GOAL = 10;
+//   const [drops, setDrops] = useState([]), [score, setScore] = useState(0);
+//   const id = useRef(0), won = score >= GOAL;
+//   useEffect(() => {
+//     if (won) return;
+//     const iv = setInterval(() => {
+//       setDrops(d => d.length > 14 ? d : [...d, { id: ++id.current, x: 6 + Math.random() * 82, dur: 3 + Math.random() * 2.2, e: ['💖', '💗', '🌹', '💝'][Math.floor(Math.random() * 4)] }]);
+//     }, 550);
+//     return () => clearInterval(iv);
+//   }, [won]);
+//   useEffect(() => { if (won) { love(); setDrops([]); } }, [won]);
+//   const pop = d => { setDrops(x => x.filter(y => y.id !== d.id)); setScore(v => v + 1); };
+//   const gone = d => setDrops(x => x.filter(y => y.id !== d.id));
+//   return <>
+//     <h2>{title}</h2><p className="rx-small">{hint}</p>
+//     <div className="rx-score">💖 {Math.min(score, GOAL)} / {GOAL}</div>
+//     <div className="rx-catch">
+//       {drops.map(d => <button key={d.id} className="rx-drop" style={{ left: d.x + '%', animationDuration: d.dur + 's' }}
+//         onPointerDown={() => pop(d)} onAnimationEnd={() => gone(d)}>{d.e}</button>)}
+//       {won && <motion.div className="rx-won" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }}>You caught them all! 🎉</motion.div>}
+//     </div>
+//     {won && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} onClick={done}>Next</motion.button>}</>;
+// }
+
+// /* ---------- 7. Memory tree: video jaisa heart-tree, photo frames latakte hain ---------- */
+// const CANOPY = (() => {
+//   const out = [];
+//   [[1, 40], [0.72, 28], [0.45, 16], [0.2, 6]].forEach(([k, cnt], r) => {
+//     for (let n = 0; n < cnt; n++) {
+//       const a = (n / cnt) * Math.PI * 2 + r * 0.4;
+//       const x = 16 * Math.sin(a) ** 3, y = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+//       out.push({ l: 50 + x * k * 2.6, tp: 38 - y * k * 1.9, f: 13 + ((n * 7 + r * 3) % 9), c: ['#ff9ab8', '#ffb3c6', '#ffe29a', '#ff7aa8'][(n + r) % 4], d: 1.2 + (out.length * 0.035) });
+//     }
+//   });
+//   return out;
+// })();
+// const FRAMES = [[30, 30, -6], [70, 28, 5], [50, 48, -2], [32, 60, 4], [68, 58, -5]];
+// function Tree({ photos, done }) {
+//   const [sel, setSel] = useState(null), [ready, setReady] = useState(false);
+//   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
+//   useEffect(() => { const id = setTimeout(() => setReady(true), 4200); return () => clearTimeout(id); }, []);
+//   return <>
+//     <h2>Our Tree of Memories 🌳</h2>
+//     <div className="rx-tree">
+//       <svg viewBox="0 0 300 340" className="rx-trunk">
+//         <motion.path d="M150 340 C150 290 148 250 150 200 M150 240 C120 220 105 198 85 172 M150 228 C180 208 198 188 215 162 M150 208 C150 182 150 160 150 140"
+//           stroke="#5a3a2a" strokeWidth="9" strokeLinecap="round" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.6 }} />
+//       </svg>
+//       {CANOPY.map((h, n) => <span key={n} className="rx-leaf" style={{ left: h.l + '%', top: h.tp + '%', fontSize: h.f, color: h.c, animationDelay: h.d + 's' }}>♥</span>)}
+//       {items.map((p, n) => <motion.button key={n} className="rx-frame" style={{ left: FRAMES[n][0] + '%', top: FRAMES[n][1] + '%', rotate: FRAMES[n][2] }}
+//         initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 2.4 + n * 0.4, type: 'spring' }} onClick={() => setSel(p || 'ph')}>
+//         {p ? <img src={p} alt="" /> : <span>📸</span>}</motion.button>)}
+//     </div>
+//     <p className="rx-small">Tap any frame</p>
+//     {ready && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={done}>Next</motion.button>}
+//     {sel && typeof document !== 'undefined' && createPortal(
+//       <div className="rx-zoom" onClick={() => setSel(null)}>
+//         <div className="rx-zoomcard">{sel === 'ph' ? <span>📸</span> : <img src={sel} alt="" />}</div></div>, document.body)}</>;
+// }
+
+// /* ---------- 8. Letter + 9. Final (same as before) ---------- */
+// function Letter({ title, text, btn, done }) {
+//   const [n, setN] = useState(0), box = useRef();
+//   const fin = n >= text.length;
+//   useEffect(() => {
+//     if (fin) return;
+//     const id = setTimeout(() => setN(v => v + 2), 24);
+//     return () => clearTimeout(id);
+//   }, [n, fin]);
+//   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [n]);
+//   return <>
+//     <h2>{title}</h2>
+//     <div className="rx-letter" ref={box}>{text.slice(0, n)}{!fin && <span className="rx-caret" />}</div>
+//     {fin ? <button className="rx-btn" onClick={done}>{btn}</button> : <button className="rx-link" onClick={() => setN(text.length)}>skip</button>}</>;
+// }
+
+// function Final({ name, t, replay }) {
+//   useEffect(() => {
+//     const a = setTimeout(love, 500), b = setTimeout(love, 1500);
+//     return () => { clearTimeout(a); clearTimeout(b); };
+//   }, []);
+//   return <>
+//     <motion.svg viewBox="0 0 100 90" className="rx-bigsvg" animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 1.4 }}>
+//       <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+//       <path d={HEART} fill="url(#fg)" />
+//       <text x="50" y="46" textAnchor="middle" className="rx-hname" fontSize={Math.min(16, 120 / Math.max(name.length, 1))}>{name}</text>
+//     </motion.svg>
+//     <h1>{t.finalTitle}</h1><p className="rx-hand">{t.finalSub}</p>
+//     <button className="rx-btn" onClick={replay}>Watch again</button></>;
+// }
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+// import React, { useState, useEffect, useRef } from 'react';
+// import { createPortal } from 'react-dom';
+// import { motion } from 'framer-motion';
+// import confetti from 'canvas-confetti';
+// import { Sticker } from './Art';
+// import './premium.css';
+
+// // Flow: lifafa -> heart par teer -> cake gir ke bane -> candle phoonk -> Little Moments (dil me photos)
+// //       -> catch the hearts (game) -> 3 questions (No bhaagta hai) -> memory tree (photo frames) -> letter -> last surprise
+// const SCENES = ['seal', 'arrows', 'cake', 'candle', 'photos', 'catch', 'questions', 'tree', 'letter', 'final'];
+// const HEART = 'M50 88 C10 55 0 30 0 20 C0 8 10 0 22 0 C34 0 45 8 50 18 C55 8 66 0 78 0 C90 0 100 8 100 20 C100 30 90 55 50 88Z';
+// const COL = ['#ffd6e0', '#ff7aa8', '#ffe29a', '#ffffff'];
+// function love() {
+//   let shapes;
+//   try { shapes = [confetti.shapeFromText({ text: '💗', scalar: 2 }), 'circle']; } catch (e) { /* default shapes */ }
+//   confetti({ particleCount: 90, spread: 110, origin: { y: 0.6 }, colors: COL, scalar: 2, shapes });
+// }
+
+// export default function PremiumExperience({ card }) {
+//   const [i, setI] = useState(0), [k, setK] = useState(0);
+//   const next = () => setI(n => Math.min(n + 1, SCENES.length - 1));
+//   const s = SCENES[i], t = card.texts, name = card.recipientName, pet = card.options?.friendSticker || 'bunny';
+//   return <main className="rx">
+//     <div className="rx-sun" /><Petals dense={s === 'final'} />
+//     <motion.section key={s + k} className="rx-scene" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+//       {s === 'seal' && <Seal t={t} done={next} />}
+//       {s === 'arrows' && <Arrows t={t} name={name} done={next} />}
+//       {s === 'cake' && <CakeBuild done={next} />}
+//       {s === 'candle' && <Candle done={next} />}
+//       {s === 'photos' && <Gallery photos={card.photos || []} title={t.momentsTitle || 'Little Moments'} done={next} />}
+//       {s === 'catch' && <Catch title={t.catchTitle || 'Catch the hearts'} hint={t.catchHint || 'Tap 10 falling hearts'} done={next} />}
+//       {s === 'questions' && <Questions title={t.qTitle || 'Quick questions'} qs={[t.q1, t.q2, t.q3]} done={next} />}
+//       {s === 'tree' && <Tree photos={card.treePhotos || []} done={next} />}
+//       {s === 'letter' && <Letter title={t.envelopeTitle} text={card.letter} btn={t.lastButton} done={next} />}
+//       {s === 'final' && <Final name={name} t={t} replay={() => { setI(0); setK(x => x + 1); }} />}
+//     </motion.section>
+//   </main>;
+// }
+
+// function Petals({ dense }) {
+//   const [p, setP] = useState([]); // client par hi random (hydration error se bachne ke liye)
+//   useEffect(() => {
+//     setP(Array.from({ length: dense ? 34 : 18 }, (_, n) => ({ n, l: Math.random() * 100, d: 9 + Math.random() * 9, s: -Math.random() * 14, f: 14 + Math.random() * 18, e: ['🌹', '🌸', '💗'][n % 3] })));
+//   }, [dense]);
+//   return p.map(x => <span key={(dense ? 'd' : 'n') + x.n} className="rx-petal" style={{ left: x.l + '%', animationDuration: x.d + 's', animationDelay: x.s + 's', fontSize: x.f }}>{x.e}</span>);
+// }
+
+// /* ---------- 1. Lifafa (same as before) ---------- */
+// function Seal({ t, done }) {
+//   const [open, setOpen] = useState(false);
+//   return <>
+//     <p className="rx-hand">{t.intro2}</p>
+//     <div className="rx-env" onClick={() => setOpen(true)}>
+//       <div className="rx-back" />
+//       <motion.div className="rx-paper" animate={{ y: open ? -120 : 0 }} transition={{ delay: 0.5, duration: 0.9, ease: 'easeOut' }}>
+//         <b>{t.intro}</b><span>💌</span></motion.div>
+//       <div className="rx-front" />
+//       <motion.div className="rx-flap" animate={{ rotateX: open ? 180 : 0, zIndex: open ? 0 : 4 }} transition={{ duration: 0.7 }} />
+//       <motion.div className="rx-wax" animate={open ? { scale: [1, 1.4, 0], opacity: [1, 1, 0] } : { scale: [1, 1.08, 1] }}
+//         transition={open ? { duration: 0.6 } : { repeat: Infinity, duration: 1.6 }}>♥</motion.div>
+//     </div>
+//     {open
+//       ? <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }} onClick={done}>Continue</motion.button>
+//       : <p className="rx-small">Tap the seal</p>}</>;
+// }
+
+// /* ---------- 2. Heart par teer, phir Happy Birthday ---------- */
+// const ANGLES = [-22, 165, 68];
+// function Arrows({ t, name, done }) {
+//   const [n, setN] = useState(0), [boom, setBoom] = useState(false);
+//   const timers = useRef([]);
+//   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+//   const hit = () => {
+//     if (boom || n >= 3) return;
+//     const m = n + 1; setN(m);
+//     if (m === 3) {
+//       timers.current.push(setTimeout(() => { setBoom(true); love(); }, 800));
+//       timers.current.push(setTimeout(done, 5200));
+//     }
+//   };
+//   return <>
+//     <h2>{t.strikeTitle || 'Aim for the heart'}</h2>
+//     <div className="rx-hit" onClick={hit}>
+//       <motion.svg key={n} viewBox="0 0 100 90" className="rx-hitheart"
+//         animate={n ? { scale: [1, 0.82, 1.12, 1] } : { scale: [1, 1.06, 1] }}
+//         transition={n ? { duration: 0.45 } : { repeat: Infinity, duration: 1.4 }}>
+//         <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+//         <path d={HEART} fill="url(#hg)" />
+//       </motion.svg>
+//       {ANGLES.slice(0, n).map((a, j) => <div key={j} className="rx-arrowwrap" style={{ transform: `rotate(${a}deg)` }}>
+//         <motion.svg viewBox="0 0 130 20" className="rx-arrow" initial={{ x: -320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.3, ease: 'easeIn' }}>
+//           <line x1="10" y1="10" x2="118" y2="10" stroke="#fff3d6" strokeWidth="3" strokeLinecap="round" />
+//           <polygon points="116,2 130,10 116,18" fill="#ffd59a" />
+//           <polygon points="0,1 16,10 0,19 6,10" fill="#ffffff" />
+//         </motion.svg></div>)}
+//     </div>
+//     <p className="rx-small">{n >= 3 ? '💘' : `Tap the heart to shoot an arrow (${n}/3)`}</p>
+//     {boom && typeof document !== 'undefined' && createPortal(
+//       <div className="rx-boom">
+//         <motion.i className="rx-circle" initial={{ scale: 0 }} animate={{ scale: 34 }} transition={{ duration: 1.1, ease: 'easeIn' }} />
+//         <motion.div className="rx-hb" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1, duration: 0.7 }}>
+//           <small>make a wish...</small><h1>Happy Birthday</h1><b>{name}</b>
+//         </motion.div>
+//       </div>, document.body)}</>;
+// }
+
+// /* ---------- 3. Cake upar se gir ke banta hai ---------- */
+// function Piece({ i, build, children }) {
+//   if (!build) return <g>{children}</g>;
+//   return <motion.g initial={{ y: -360, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', bounce: 0.35, duration: 0.9, delay: 0.4 + i * 0.8 }}>{children}</motion.g>;
+// }
+// function PinkCake({ lit = false, build = false }) {
+//   return <svg viewBox="0 0 200 220" aria-label="cake">
+//     <Piece i={0} build={build}><ellipse cx="100" cy="196" rx="88" ry="10" fill="#fff3f7" /><ellipse cx="100" cy="192" rx="80" ry="8" fill="#f6d9e3" /></Piece>
+//     <Piece i={1} build={build}><rect x="24" y="138" width="152" height="54" rx="14" fill="#f48fb1" /><rect x="24" y="138" width="152" height="15" rx="8" fill="#fff" />
+//       {[44, 76, 108, 140].map(x => <circle key={x} cx={x + 6} cy="172" r="5" fill="#ffe29a" />)}</Piece>
+//     <Piece i={2} build={build}><rect x="44" y="96" width="112" height="44" rx="12" fill="#f7a8c4" /><rect x="44" y="96" width="112" height="13" rx="7" fill="#fff" /></Piece>
+//     <Piece i={3} build={build}><rect x="64" y="58" width="72" height="40" rx="11" fill="#f9bfd4" /><rect x="64" y="58" width="72" height="12" rx="6" fill="#fff" />
+//       <circle cx="84" cy="86" r="4" fill="#ff7aa8" /><circle cx="116" cy="86" r="4" fill="#ff7aa8" /></Piece>
+//     <Piece i={4} build={build}><circle cx="100" cy="52" r="7" fill="#e0245e" /><path d="M100 46 q6 -10 12 -12" stroke="#4f7f5a" strokeWidth="2" fill="none" /></Piece>
+//     <Piece i={5} build={build}><rect x="96" y="14" width="8" height="30" rx="3" fill="#ffd166" />
+//       {lit && <g className="fl"><ellipse cx="100" cy="6" rx="7" ry="12" fill="#ffb347" /><ellipse cx="100" cy="9" rx="3.5" ry="7" fill="#fff3b0" /></g>}</Piece>
+//   </svg>;
+// }
+// function CakeBuild({ done }) {
+//   useEffect(() => { const id = setTimeout(done, 6000); return () => clearTimeout(id); }, []);
+//   return <>
+//     <h2>First things first 🎂</h2>
+//     <div className="rx-cake"><PinkCake build /></div>
+//     <p className="rx-small">Your cake is being made...</p></>;
+// }
+
+// /* ---------- 4. Candle: phoonk maro ya tap karo ---------- */
+// function Candle({ done }) {
+//   const [lit, setLit] = useState(true);
+//   const [msg, setMsg] = useState('');
+//   const stopMic = useRef(() => {});
+//   useEffect(() => () => stopMic.current(), []);
+//   const blow = () => { if (!lit) return; setLit(false); love(); setTimeout(done, 1600); };
+//   async function listen() {
+//     try {
+//       const stream = await navigator.mediaDevices.getUserMedia({
+//         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+//       const ctx = new (window.AudioContext || window.webkitAudioContext)(), an = ctx.createAnalyser(); an.fftSize = 1024;
+//       await ctx.resume();
+//       ctx.createMediaStreamSource(stream).connect(an);
+//       const buf = new Float32Array(an.fftSize);
+//       setMsg('Stay quiet for a second...');
+//       const t0 = performance.now(); let base = 0, n = 0, hits = 0, live = true, said = false;
+//       stopMic.current = () => { live = false; stream.getTracks().forEach(x => x.stop()); ctx.close().catch(() => {}); stopMic.current = () => {}; };
+//       const tick = () => {
+//         if (!live) return;
+//         an.getFloatTimeDomainData(buf);
+//         let sum = 0; for (const v of buf) sum += v * v;
+//         const rms = Math.sqrt(sum / buf.length);
+//         if (performance.now() - t0 < 1000) { base += rms; n++; }      // pehle 1 sec shaant awaaz naapo
+//         else {
+//           if (!said) { said = true; setMsg('Now blow hard into the mic!'); }
+//           const limit = Math.max((base / Math.max(n, 1)) * 5, 0.12);   // pehle se zyada strict
+//           hits = rms > limit ? hits + 1 : 0;
+//           if (hits >= 12) { stopMic.current(); blow(); return; }       // lagbhag 0.2 sec lagatar tez awaaz
+//         }
+//         requestAnimationFrame(tick);
+//       };
+//       tick();
+//     } catch (e) {
+//       const n = e?.name || '';
+//       setMsg(!navigator.mediaDevices ? 'Mic is not supported in this browser. Open in Chrome/Safari, or tap the cake'
+//         : n === 'NotAllowedError' ? "Mic is blocked. Allow Microphone in your browser's site settings, or tap the cake"
+//         : 'Mic failed (' + n + '). Tap the cake');
+//     }
+//   }
+//   return <>
+//     <h2>Blow the candle</h2>
+//     <div className="rx-cake" onClick={blow}><PinkCake lit={lit} /></div>
+//     <button className="rx-btn" onClick={listen}>🎤 Blow into the mic</button><div className="rx-small">{msg}</div></>;
+// }
+
+// /* ---------- 5. Little Moments (dil me photos) ---------- */
+// function Gallery({ photos, title, done }) {
+//   const pos = [[10, 0, 130], [160, 40, 115], [20, 150, 120], [165, 190, 125], [90, 290, 105]];
+//   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
+//   return <>
+//     <h2>{title}</h2>
+//     <button className="rx-btn" onClick={done}>Next</button>
+//     <div className="rx-gal">{items.map((p, n) => <motion.svg key={n} viewBox="0 0 100 90" className="rx-hf" style={{ left: pos[n][0], top: pos[n][1], width: pos[n][2] }}
+//       animate={{ y: [0, -10, 0], rotate: n % 2 ? [4, -2, 4] : [-4, 2, -4] }} transition={{ repeat: Infinity, duration: 4 + n, ease: 'easeInOut' }}>
+//       <defs><clipPath id={'hc' + n}><path d={HEART} /></clipPath></defs>
+//       <g clipPath={`url(#hc${n})`}>
+//         {p ? <image href={p} width="100" height="90" preserveAspectRatio="xMidYMid slice" /> : <><rect width="100" height="90" fill="#ffd0dd" /><text x="50" y="52" textAnchor="middle" fontSize="26">📸</text></>}
+//       </g>
+//       <path d={HEART} fill="none" stroke="#fff" strokeWidth="3" />
+//     </motion.svg>)}</div></>;
+// }
+
+// /* ---------- 6. Catch the hearts: girte hue hearts tap karo ---------- */
+// function Catch({ title, hint, done }) {
+//   const GOAL = 10;
+//   const [drops, setDrops] = useState([]), [score, setScore] = useState(0);
+//   const id = useRef(0), won = score >= GOAL;
+//   useEffect(() => {
+//     if (won) return;
+//     const iv = setInterval(() => {
+//       setDrops(d => d.length > 14 ? d : [...d, { id: ++id.current, x: 6 + Math.random() * 82, dur: 3 + Math.random() * 2.2, e: ['💖', '💗', '🌹', '💝'][Math.floor(Math.random() * 4)] }]);
+//     }, 550);
+//     return () => clearInterval(iv);
+//   }, [won]);
+//   useEffect(() => { if (won) { love(); setDrops([]); } }, [won]);
+//   const pop = d => { setDrops(x => x.filter(y => y.id !== d.id)); setScore(v => v + 1); };
+//   const gone = d => setDrops(x => x.filter(y => y.id !== d.id));
+//   return <>
+//     <h2>{title}</h2><p className="rx-small">{hint}</p>
+//     <div className="rx-score">💖 {Math.min(score, GOAL)} / {GOAL}</div>
+//     <div className="rx-catch">
+//       {drops.map(d => <button key={d.id} className="rx-drop" style={{ left: d.x + '%', animationDuration: d.dur + 's' }}
+//         onPointerDown={() => pop(d)} onAnimationEnd={() => gone(d)}>{d.e}</button>)}
+//       {won && <motion.div className="rx-won" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }}>You caught them all! 🎉</motion.div>}
+//     </div>
+//     {won && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} onClick={done}>Next</motion.button>}</>;
+// }
+
+// /* ---------- 6b. 3 questions: No button bhaagta hai ---------- */
+// const TEASE = ['Nice try 😜', 'Are you sure? 🥺', 'Too slow! 😆', 'Just say yes 💖'];
+// function Questions({ title, qs, done }) {
+//   const list = qs.filter(Boolean);
+//   const [n, setN] = useState(0), [pos, setPos] = useState(null), [tease, setTease] = useState(0);
+//   const box = useRef();
+//   const finished = n >= list.length;
+//   const dodge = e => {
+//     if (e?.cancelable) e.preventDefault();
+//     const b = box.current; if (!b) return;
+//     const w = Math.max(b.clientWidth - 110, 0), h = Math.max(b.clientHeight - 50, 0);
+//     let x = 0, y = 0;
+//     for (let tries = 0; tries < 8; tries++) {
+//       x = Math.random() * w; y = Math.random() * h;
+//       if (!pos || Math.hypot(x - pos.x, y - pos.y) > 90) break;
+//     }
+//     setPos({ x, y }); setTease(v => v + 1);
+//   };
+//   const yes = () => { setN(v => v + 1); setPos(null); setTease(0); if (n + 1 >= list.length) love(); };
+//   if (finished) return <>
+//     <h2>Yay! 🥰</h2>
+//     <p className="rx-hand">I knew it all along 💖</p>
+//     <button className="rx-btn" onClick={done}>Next</button></>;
+//   return <>
+//     <h2>{title}</h2>
+//     <div className="rx-small">Question {n + 1} of {list.length}</div>
+//     <motion.p key={n} className="rx-q" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>{list[n]}</motion.p>
+//     <div className="rx-yn" ref={box}>
+//       <button className="rx-btn rx-yes" onClick={yes}>Yes 💖</button>
+//       <button className="rx-no" style={pos ? { left: pos.x, top: pos.y, right: 'auto' } : undefined}
+//         onPointerEnter={dodge} onPointerDown={dodge} onTouchStart={dodge} onFocus={dodge} onClick={dodge}>No</button>
+//     </div>
+//     <div className="rx-small" style={{ minHeight: 22 }}>{tease ? TEASE[(tease - 1) % TEASE.length] : ''}</div></>;
+// }
+
+// /* ---------- 7. Memory tree: video jaisa heart-tree, photo frames latakte hain ---------- */
+// const CANOPY = (() => {
+//   const out = [];
+//   [[1, 40], [0.72, 28], [0.45, 16], [0.2, 6]].forEach(([k, cnt], r) => {
+//     for (let n = 0; n < cnt; n++) {
+//       const a = (n / cnt) * Math.PI * 2 + r * 0.4;
+//       const x = 16 * Math.sin(a) ** 3, y = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+//       out.push({ l: 50 + x * k * 2.6, tp: 38 - y * k * 1.9, f: 13 + ((n * 7 + r * 3) % 9), c: ['#ff9ab8', '#ffb3c6', '#ffe29a', '#ff7aa8'][(n + r) % 4], d: 1.2 + (out.length * 0.035) });
+//     }
+//   });
+//   return out;
+// })();
+// const FRAMES = [[30, 30, -6], [70, 28, 5], [50, 48, -2], [32, 60, 4], [68, 58, -5]];
+// function Tree({ photos, done }) {
+//   const [sel, setSel] = useState(null), [ready, setReady] = useState(false);
+//   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
+//   useEffect(() => { const id = setTimeout(() => setReady(true), 4200); return () => clearTimeout(id); }, []);
+//   return <>
+//     <h2>Our Tree of Memories 🌳</h2>
+//     <div className="rx-tree">
+//       <svg viewBox="0 0 300 340" className="rx-trunk">
+//         <motion.path d="M150 340 C150 290 148 250 150 200 M150 240 C120 220 105 198 85 172 M150 228 C180 208 198 188 215 162 M150 208 C150 182 150 160 150 140"
+//           stroke="#5a3a2a" strokeWidth="9" strokeLinecap="round" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.6 }} />
+//       </svg>
+//       {CANOPY.map((h, n) => <span key={n} className="rx-leaf" style={{ left: h.l + '%', top: h.tp + '%', fontSize: h.f, color: h.c, animationDelay: h.d + 's' }}>♥</span>)}
+//       {items.map((p, n) => <motion.button key={n} className="rx-frame" style={{ left: FRAMES[n][0] + '%', top: FRAMES[n][1] + '%', rotate: FRAMES[n][2] }}
+//         initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 2.4 + n * 0.4, type: 'spring' }} onClick={() => setSel(p || 'ph')}>
+//         {p ? <img src={p} alt="" /> : <span>📸</span>}</motion.button>)}
+//     </div>
+//     <p className="rx-small">Tap any frame</p>
+//     {ready && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={done}>Next</motion.button>}
+//     {sel && typeof document !== 'undefined' && createPortal(
+//       <div className="rx-zoom" onClick={() => setSel(null)}>
+//         <div className="rx-zoomcard">{sel === 'ph' ? <span>📸</span> : <img src={sel} alt="" />}</div></div>, document.body)}</>;
+// }
+
+// /* ---------- 8. Letter + 9. Final (same as before) ---------- */
+// function Letter({ title, text, btn, done }) {
+//   const [n, setN] = useState(0), box = useRef();
+//   const fin = n >= text.length;
+//   useEffect(() => {
+//     if (fin) return;
+//     const id = setTimeout(() => setN(v => v + 2), 24);
+//     return () => clearTimeout(id);
+//   }, [n, fin]);
+//   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [n]);
+//   return <>
+//     <h2>{title}</h2>
+//     <div className="rx-letter" ref={box}>{text.slice(0, n)}{!fin && <span className="rx-caret" />}</div>
+//     {fin ? <button className="rx-btn" onClick={done}>{btn}</button> : <button className="rx-link" onClick={() => setN(text.length)}>skip</button>}</>;
+// }
+
+// function Final({ name, t, replay }) {
+//   useEffect(() => {
+//     const a = setTimeout(love, 500), b = setTimeout(love, 1500);
+//     return () => { clearTimeout(a); clearTimeout(b); };
+//   }, []);
+//   return <>
+//     <motion.svg viewBox="0 0 100 90" className="rx-bigsvg" animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 1.4 }}>
+//       <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+//       <path d={HEART} fill="url(#fg)" />
+//       <text x="50" y="46" textAnchor="middle" className="rx-hname" fontSize={Math.min(16, 120 / Math.max(name.length, 1))}>{name}</text>
+//     </motion.svg>
+//     <h1>{t.finalTitle}</h1><p className="rx-hand">{t.finalSub}</p>
+//     <button className="rx-btn" onClick={replay}>Watch again</button></>;
+// }
+
 
 
 
@@ -193,122 +925,303 @@
 
 // 'use client';
 // import React, { useState, useEffect, useRef } from 'react';
-// import { motion, AnimatePresence } from 'framer-motion';
+// import { createPortal } from 'react-dom';
+// import { motion } from 'framer-motion';
 // import confetti from 'canvas-confetti';
 // import { Sticker } from './Art';
 // import './premium.css';
 
-// // "Our Movie": ticket faado -> parda khule -> trailer -> scratch card -> script letter -> end credits
-// const SCENES = ['ticket', 'curtain', 'trailer', 'scratch', 'script', 'credits'];
-// const GOLD = ['#e9c46a', '#fff3c4', '#c2182f', '#ffffff'];
-// const boom = () => confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: GOLD });
+// // Flow: lifafa -> heart par teer -> cake gir ke bane -> candle phoonk -> Little Moments (dil me photos)
+// //       -> love scanner (finger hold) -> 3 questions (No bhaagta hai) -> memory tree (photo frames) -> letter -> last surprise
+// const SCENES = ['seal', 'arrows', 'cake', 'candle', 'photos', 'scan', 'questions', 'tree', 'letter', 'final'];
+// const HEART = 'M50 88 C10 55 0 30 0 20 C0 8 10 0 22 0 C34 0 45 8 50 18 C55 8 66 0 78 0 C90 0 100 8 100 20 C100 30 90 55 50 88Z';
+// const COL = ['#ffd6e0', '#ff7aa8', '#ffe29a', '#ffffff'];
+// function love() {
+//   let shapes;
+//   try { shapes = [confetti.shapeFromText({ text: '💗', scalar: 2 }), 'circle']; } catch (e) { /* default shapes */ }
+//   confetti({ particleCount: 90, spread: 110, origin: { y: 0.6 }, colors: COL, scalar: 2, shapes });
+// }
 
 // export default function PremiumExperience({ card }) {
 //   const [i, setI] = useState(0), [k, setK] = useState(0);
 //   const next = () => setI(n => Math.min(n + 1, SCENES.length - 1));
 //   const s = SCENES[i], t = card.texts, name = card.recipientName, pet = card.options?.friendSticker || 'bunny';
-//   const lines = ['Har kahani me ek khaas insaan hota hai...', t.r1, t.r2, t.r3, t.r4, t.r5, `Aur is kahani ke hero hain ${name}.`];
-//   return <main className="cx">
-//     <div className="cx-grain" />
-//     <AnimatePresence mode="wait">
-//       <motion.section key={s + k} className="cx-scene" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-//         {s === 'ticket' && <Ticket name={name} date={card.birthDate} done={next} />}
-//         {s === 'curtain' && <Poster t={t} pet={pet} name={name} done={next} />}
-//         {s === 'trailer' && <Trailer lines={lines} photos={card.photos || []} done={next} />}
-//         {s === 'scratch' && <Scratch secret={t.r6} done={next} />}
-//         {s === 'script' && <Script title={t.envelopeTitle} text={card.letter} btn={t.lastButton} done={next} />}
-//         {s === 'credits' && <Credits t={t} name={name} pet={pet} replay={() => { setI(0); setK(x => x + 1); }} />}
-//       </motion.section>
-//     </AnimatePresence>
+//   return <main className="rx">
+//     <div className="rx-sun" /><Petals dense={s === 'final'} />
+//     <motion.section key={s + k} className="rx-scene" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+//       {s === 'seal' && <Seal t={t} done={next} />}
+//       {s === 'arrows' && <Arrows t={t} name={name} done={next} />}
+//       {s === 'cake' && <CakeBuild done={next} />}
+//       {s === 'candle' && <Candle done={next} />}
+//       {s === 'photos' && <Gallery photos={card.photos || []} title={t.momentsTitle || 'Little Moments'} done={next} />}
+//       {s === 'scan' && <Scanner title={t.scanTitle || 'Love scanner'} hint={t.scanHint || 'Touch and hold the scanner (on laptop, just click it)'} result={t.scanResult || 'Match found: 100% in love 💖'} name={name} done={next} />}
+//       {s === 'questions' && <Questions title={t.qTitle || 'Quick questions'} qs={[t.q1, t.q2, t.q3]} done={next} />}
+//       {s === 'tree' && <Tree photos={card.treePhotos || []} done={next} />}
+//       {s === 'letter' && <Letter title={t.envelopeTitle} text={card.letter} btn={t.lastButton} done={next} />}
+//       {s === 'final' && <Final name={name} t={t} replay={() => { setI(0); setK(x => x + 1); }} />}
+//     </motion.section>
 //   </main>;
 // }
 
-// function Ticket({ name, date, done }) {
-//   const [torn, setTorn] = useState(false);
-//   const tear = () => { if (torn) return; setTorn(true); setTimeout(done, 900); };
-//   return <>
-//     <p className="cx-dim">Aaj ki special screening ka ticket aaya hai</p>
-//     <div className="cx-ticket">
-//       <div className="cx-main">
-//         <small>Admit one</small>
-//         <h2>{name} ka Birthday</h2>
-//         <p>{date?.day} {date?.month}, Screen 1, Seat: mere bagal me</p>
-//       </div>
-//       <motion.div className="cx-stub" drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.6}
-//         onDragEnd={(_, inf) => { if (inf.offset.x > 60) tear(); }} onClick={tear}
-//         animate={torn ? { x: 340, y: -70, rotate: 28, opacity: 0 } : {}} transition={{ duration: 0.7 }}>Faado</motion.div>
-//     </div>
-//     <p className="cx-dim">Stub ko kheenchke faado</p></>;
+// function Petals({ dense }) {
+//   const [p, setP] = useState([]); // client par hi random (hydration error se bachne ke liye)
+//   useEffect(() => {
+//     setP(Array.from({ length: dense ? 34 : 18 }, (_, n) => ({ n, l: Math.random() * 100, d: 9 + Math.random() * 9, s: -Math.random() * 14, f: 14 + Math.random() * 18, e: ['🌹', '🌸', '💗'][n % 3] })));
+//   }, [dense]);
+//   return p.map(x => <span key={(dense ? 'd' : 'n') + x.n} className="rx-petal" style={{ left: x.l + '%', animationDuration: x.d + 's', animationDelay: x.s + 's', fontSize: x.f }}>{x.e}</span>);
 // }
 
-// function Poster({ t, name, pet, done }) {
+// /* ---------- 1. Lifafa (same as before) ---------- */
+// function Seal({ t, done }) {
 //   const [open, setOpen] = useState(false);
-//   useEffect(() => { const id = setTimeout(() => setOpen(true), 700); return () => clearTimeout(id); }, []);
 //   return <>
-//     <div className="cx-poster">
-//       <small>Ek Birthday Production</small>
-//       <h1>{t.intro}</h1>
-//       <div className="cx-pets"><Sticker kind={pet} /></div>
-//       <p className="cx-tag">{t.intro2}</p>
-//       <small>Starring {name}</small>
+//     <p className="rx-hand">{t.intro2}</p>
+//     <div className="rx-env" onClick={() => setOpen(true)}>
+//       <div className="rx-back" />
+//       <motion.div className="rx-paper" animate={{ y: open ? -120 : 0 }} transition={{ delay: 0.5, duration: 0.9, ease: 'easeOut' }}>
+//         <b>{t.intro}</b><span>💌</span></motion.div>
+//       <div className="rx-front" />
+//       <motion.div className="rx-flap" animate={{ rotateX: open ? 180 : 0, zIndex: open ? 0 : 4 }} transition={{ duration: 0.7 }} />
+//       <motion.div className="rx-wax" animate={open ? { scale: [1, 1.4, 0], opacity: [1, 1, 0] } : { scale: [1, 1.08, 1] }}
+//         transition={open ? { duration: 0.6 } : { repeat: Infinity, duration: 1.6 }}>♥</motion.div>
 //     </div>
-//     <button className="cx-btn" onClick={done}>Trailer dekho</button>
-//     <motion.div className="cx-curtain l" initial={{ x: 0 }} animate={{ x: open ? '-101%' : 0 }} transition={{ duration: 1.6, ease: [0.7, 0, 0.2, 1] }} />
-//     <motion.div className="cx-curtain r" initial={{ x: 0 }} animate={{ x: open ? '101%' : 0 }} transition={{ duration: 1.6, ease: [0.7, 0, 0.2, 1] }} /></>;
+//     {open
+//       ? <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }} onClick={done}>Continue</motion.button>
+//       : <p className="rx-small">Tap the seal</p>}</>;
 // }
 
-// function Trailer({ lines, photos, done }) {
-//   const [n, setN] = useState(0);
-//   useEffect(() => {
-//     const id = setTimeout(() => (n >= lines.length - 1 ? done() : setN(n + 1)), 2600);
-//     return () => clearTimeout(id);
-//   }, [n]);
-//   const ph = photos.length ? photos[n % photos.length] : null;
-//   return <div className="cx-screen">
-//     <AnimatePresence mode="wait">
-//       <motion.div key={n} className="cx-frame" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
-//         {ph && <img src={ph} alt="" className="cx-kb" />}
-//         <motion.p initial={{ letterSpacing: '.25em', opacity: 0 }} animate={{ letterSpacing: '.03em', opacity: 1 }} transition={{ duration: 1.8, delay: 0.3 }}>{lines[n]}</motion.p>
-//       </motion.div>
-//     </AnimatePresence>
-//     <div className="cx-bar top" /><div className="cx-bar bot" />
-//     <button className="cx-skip" onClick={done}>skip</button>
-//   </div>;
-// }
-
-// function Scratch({ secret, done }) {
-//   const cv = useRef(), down = useRef(false), cnt = useRef(0);
-//   const [won, setWon] = useState(false);
-//   useEffect(() => {
-//     const c = cv.current, x = c.getContext('2d');
-//     const g = x.createLinearGradient(0, 0, c.width, c.height);
-//     g.addColorStop(0, '#e9c46a'); g.addColorStop(0.5, '#fff0b8'); g.addColorStop(1, '#c9a227');
-//     x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
-//     x.fillStyle = '#6b5410'; x.font = '600 22px serif'; x.textAlign = 'center'; x.fillText('Yahan scratch karo', c.width / 2, c.height / 2 + 7);
-//   }, []);
-//   const scratch = e => {
-//     if (!down.current || won) return;
-//     const c = cv.current, r = c.getBoundingClientRect(), x = c.getContext('2d');
-//     x.globalCompositeOperation = 'destination-out';
-//     x.beginPath(); x.arc((e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height, 22, 0, 7); x.fill();
-//     if (++cnt.current % 8) return;
-//     const d = x.getImageData(0, 0, c.width, c.height).data; let clear = 0;
-//     for (let p = 3; p < d.length; p += 160) if (!d[p]) clear++;
-//     if (clear / (d.length / 160) > 0.45) { setWon(true); boom(); }
+// /* ---------- 2. Heart par teer, phir Happy Birthday ---------- */
+// const ANGLES = [-22, 165, 68];
+// function Arrows({ t, name, done }) {
+//   const [n, setN] = useState(0), [boom, setBoom] = useState(false);
+//   const timers = useRef([]);
+//   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+//   const hit = () => {
+//     if (boom || n >= 3) return;
+//     const m = n + 1; setN(m);
+//     if (m === 3) {
+//       timers.current.push(setTimeout(() => { setBoom(true); love(); }, 800));
+//       timers.current.push(setTimeout(done, 5200));
+//     }
 //   };
 //   return <>
-//     <h2>Ek deleted scene</h2>
-//     <p className="cx-dim">Jo film me nahi aaya, wo yahan chhupa hai</p>
-//     <div className="cx-scratch">
-//       <div className="cx-secret">{secret}</div>
-//       <canvas ref={cv} width="300" height="160" className={won ? 'gone' : ''}
-//         onPointerDown={e => { down.current = true; e.currentTarget.setPointerCapture(e.pointerId); scratch(e); }}
-//         onPointerMove={scratch} onPointerUp={() => { down.current = false; }} />
+//     <h2>{t.strikeTitle || 'Aim for the heart'}</h2>
+//     <div className="rx-hit" onClick={hit}>
+//       <motion.svg key={n} viewBox="0 0 100 90" className="rx-hitheart"
+//         animate={n ? { scale: [1, 0.82, 1.12, 1] } : { scale: [1, 1.06, 1] }}
+//         transition={n ? { duration: 0.45 } : { repeat: Infinity, duration: 1.4 }}>
+//         <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+//         <path d={HEART} fill="url(#hg)" />
+//       </motion.svg>
+//       {ANGLES.slice(0, n).map((a, j) => <div key={j} className="rx-arrowwrap" style={{ transform: `rotate(${a}deg)` }}>
+//         <motion.svg viewBox="0 0 130 20" className="rx-arrow" initial={{ x: -320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.3, ease: 'easeIn' }}>
+//           <line x1="10" y1="10" x2="118" y2="10" stroke="#fff3d6" strokeWidth="3" strokeLinecap="round" />
+//           <polygon points="116,2 130,10 116,18" fill="#ffd59a" />
+//           <polygon points="0,1 16,10 0,19 6,10" fill="#ffffff" />
+//         </motion.svg></div>)}
 //     </div>
-//     {won && <button className="cx-btn" onClick={done}>Aage</button>}</>;
+//     <p className="rx-small">{n >= 3 ? '💘' : `Tap the heart to shoot an arrow (${n}/3)`}</p>
+//     {boom && typeof document !== 'undefined' && createPortal(
+//       <div className="rx-boom">
+//         <motion.i className="rx-circle" initial={{ scale: 0 }} animate={{ scale: 34 }} transition={{ duration: 1.1, ease: 'easeIn' }} />
+//         <motion.div className="rx-hb" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1, duration: 0.7 }}>
+//           <small>make a wish...</small><h1>Happy Birthday</h1><b>{name}</b>
+//         </motion.div>
+//       </div>, document.body)}</>;
 // }
 
-// function Script({ title, text, btn, done }) {
+// /* ---------- 3. Cake upar se gir ke banta hai ---------- */
+// function Piece({ i, build, children }) {
+//   if (!build) return <g>{children}</g>;
+//   return <motion.g initial={{ y: -360, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', bounce: 0.35, duration: 0.9, delay: 0.4 + i * 0.8 }}>{children}</motion.g>;
+// }
+// function PinkCake({ lit = false, build = false }) {
+//   return <svg viewBox="0 0 200 220" aria-label="cake">
+//     <Piece i={0} build={build}><ellipse cx="100" cy="196" rx="88" ry="10" fill="#fff3f7" /><ellipse cx="100" cy="192" rx="80" ry="8" fill="#f6d9e3" /></Piece>
+//     <Piece i={1} build={build}><rect x="24" y="138" width="152" height="54" rx="14" fill="#f48fb1" /><rect x="24" y="138" width="152" height="15" rx="8" fill="#fff" />
+//       {[44, 76, 108, 140].map(x => <circle key={x} cx={x + 6} cy="172" r="5" fill="#ffe29a" />)}</Piece>
+//     <Piece i={2} build={build}><rect x="44" y="96" width="112" height="44" rx="12" fill="#f7a8c4" /><rect x="44" y="96" width="112" height="13" rx="7" fill="#fff" /></Piece>
+//     <Piece i={3} build={build}><rect x="64" y="58" width="72" height="40" rx="11" fill="#f9bfd4" /><rect x="64" y="58" width="72" height="12" rx="6" fill="#fff" />
+//       <circle cx="84" cy="86" r="4" fill="#ff7aa8" /><circle cx="116" cy="86" r="4" fill="#ff7aa8" /></Piece>
+//     <Piece i={4} build={build}><circle cx="100" cy="52" r="7" fill="#e0245e" /><path d="M100 46 q6 -10 12 -12" stroke="#4f7f5a" strokeWidth="2" fill="none" /></Piece>
+//     <Piece i={5} build={build}><rect x="96" y="14" width="8" height="30" rx="3" fill="#ffd166" />
+//       {lit && <g className="fl"><ellipse cx="100" cy="6" rx="7" ry="12" fill="#ffb347" /><ellipse cx="100" cy="9" rx="3.5" ry="7" fill="#fff3b0" /></g>}</Piece>
+//   </svg>;
+// }
+// function CakeBuild({ done }) {
+//   useEffect(() => { const id = setTimeout(done, 6000); return () => clearTimeout(id); }, []);
+//   return <>
+//     <h2>First things first 🎂</h2>
+//     <div className="rx-cake"><PinkCake build /></div>
+//     <p className="rx-small">Your cake is being made...</p></>;
+// }
+
+// /* ---------- 4. Candle: phoonk maro ya tap karo ---------- */
+// function Candle({ done }) {
+//   const [lit, setLit] = useState(true);
+//   const [msg, setMsg] = useState('');
+//   const stopMic = useRef(() => {});
+//   useEffect(() => () => stopMic.current(), []);
+//   const blow = () => { if (!lit) return; setLit(false); love(); setTimeout(done, 1600); };
+//   async function listen() {
+//     try {
+//       const stream = await navigator.mediaDevices.getUserMedia({
+//         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+//       const ctx = new (window.AudioContext || window.webkitAudioContext)(), an = ctx.createAnalyser(); an.fftSize = 1024;
+//       await ctx.resume();
+//       ctx.createMediaStreamSource(stream).connect(an);
+//       const buf = new Float32Array(an.fftSize);
+//       setMsg('Stay quiet for a second...');
+//       const t0 = performance.now(); let base = 0, n = 0, hits = 0, live = true, said = false;
+//       stopMic.current = () => { live = false; stream.getTracks().forEach(x => x.stop()); ctx.close().catch(() => {}); stopMic.current = () => {}; };
+//       const tick = () => {
+//         if (!live) return;
+//         an.getFloatTimeDomainData(buf);
+//         let sum = 0; for (const v of buf) sum += v * v;
+//         const rms = Math.sqrt(sum / buf.length);
+//         if (performance.now() - t0 < 1000) { base += rms; n++; }      // pehle 1 sec shaant awaaz naapo
+//         else {
+//           if (!said) { said = true; setMsg('Now blow hard into the mic!'); }
+//           const limit = Math.max((base / Math.max(n, 1)) * 5, 0.12);   // pehle se zyada strict
+//           hits = rms > limit ? hits + 1 : 0;
+//           if (hits >= 12) { stopMic.current(); blow(); return; }       // lagbhag 0.2 sec lagatar tez awaaz
+//         }
+//         requestAnimationFrame(tick);
+//       };
+//       tick();
+//     } catch (e) {
+//       const n = e?.name || '';
+//       setMsg(!navigator.mediaDevices ? 'Mic is not supported in this browser. Open in Chrome/Safari, or tap the cake'
+//         : n === 'NotAllowedError' ? "Mic is blocked. Allow Microphone in your browser's site settings, or tap the cake"
+//         : 'Mic failed (' + n + '). Tap the cake');
+//     }
+//   }
+//   return <>
+//     <h2>Blow the candle</h2>
+//     <div className="rx-cake" onClick={blow}><PinkCake lit={lit} /></div>
+//     <button className="rx-btn" onClick={listen}>🎤 Blow into the mic</button><div className="rx-small">{msg}</div></>;
+// }
+
+// /* ---------- 5. Little Moments (dil me photos) ---------- */
+// function Gallery({ photos, title, done }) {
+//   const pos = [[10, 0, 130], [160, 40, 115], [20, 150, 120], [165, 190, 125], [90, 290, 105]];
+//   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
+//   return <>
+//     <h2>{title}</h2>
+//     <button className="rx-btn" onClick={done}>Next</button>
+//     <div className="rx-gal">{items.map((p, n) => <motion.svg key={n} viewBox="0 0 100 90" className="rx-hf" style={{ left: pos[n][0], top: pos[n][1], width: pos[n][2] }}
+//       animate={{ y: [0, -10, 0], rotate: n % 2 ? [4, -2, 4] : [-4, 2, -4] }} transition={{ repeat: Infinity, duration: 4 + n, ease: 'easeInOut' }}>
+//       <defs><clipPath id={'hc' + n}><path d={HEART} /></clipPath></defs>
+//       <g clipPath={`url(#hc${n})`}>
+//         {p ? <image href={p} width="100" height="90" preserveAspectRatio="xMidYMid slice" /> : <><rect width="100" height="90" fill="#ffd0dd" /><text x="50" y="52" textAnchor="middle" fontSize="26">📸</text></>}
+//       </g>
+//       <path d={HEART} fill="none" stroke="#fff" strokeWidth="3" />
+//     </motion.svg>)}</div></>;
+// }
+
+// /* ---------- 6. Love scanner: ungli rakho, scan hota hai, phone vibrate karta hai, result chaukata hai ---------- */
+// function Scanner({ title, hint, result, name, done }) {
+//   const [p, setP] = useState(0), [ok, setOk] = useState(false), tm = useRef();
+//   const vib = v => { try { navigator.vibrate && navigator.vibrate(v); } catch (e) { /* ignore */ } };
+//   const auto = useRef(false); // laptop (mouse): sirf click karo, scan apne aap poora hota hai
+//   const start = e => {
+//     if (ok) return;
+//     if (e && e.pointerType === 'mouse') auto.current = true;
+//     clearInterval(tm.current); vib(2200); tm.current = setInterval(() => setP(v => Math.min(v + 1.4, 100)), 30);
+//   };
+//   const stop = () => { if (auto.current) return; clearInterval(tm.current); if (!ok) { setP(0); vib(0); } };
+//   useEffect(() => () => { clearInterval(tm.current); vib(0); }, []);
+//   useEffect(() => {
+//     if (p < 100 || ok) return;
+//     clearInterval(tm.current); setOk(true); love(); vib([200, 100, 200]);
+//   }, [p]);
+//   const scanning = p > 0 && !ok;
+//   return <>
+//     <h2>{title}</h2><p className="rx-small">{hint}</p>
+//     <div className={'rx-scan' + (scanning ? ' shake' : '')} onPointerDown={start} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onContextMenu={e => e.preventDefault()}>
+//       <svg viewBox="0 0 100 100" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity={ok ? 1 : 0.85}>
+//         <path d="M30 40 A22 22 0 0 1 70 40" /><path d="M22 52 A30 30 0 0 1 78 52 L78 60" /><path d="M38 78 C34 66 34 54 40 46 A12 12 0 0 1 60 46 C62 58 62 68 58 80" />
+//         <path d="M50 50 L50 84" strokeDasharray="4 6" /><path d="M30 70 C28 60 28 50 32 44" /><path d="M70 70 C72 60 72 52 70 46" />
+//       </svg>
+//       {scanning && <div className="rx-scanline" style={{ top: p + '%' }} />}
+//     </div>
+//     <div className="rx-result">{ok ? `${name}: ${result}` : scanning ? `Scanning ${name}... ${Math.floor(p)}%` : ''}</div>
+//     {ok && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} onClick={done}>Next</motion.button>}</>;
+// }
+
+// /* ---------- 6b. 3 questions: No button bhaagta hai ---------- */
+// const TEASE = ['Nice try 😜', 'Are you sure? 🥺', 'Too slow! 😆', 'Just say yes 💖'];
+// function Questions({ title, qs, done }) {
+//   const list = qs.filter(Boolean);
+//   const [n, setN] = useState(0), [pos, setPos] = useState(null), [tease, setTease] = useState(0);
+//   const box = useRef();
+//   const finished = n >= list.length;
+//   const dodge = e => {
+//     if (e?.cancelable) e.preventDefault();
+//     const b = box.current; if (!b) return;
+//     const w = Math.max(b.clientWidth - 110, 0), h = Math.max(b.clientHeight - 50, 0);
+//     let x = 0, y = 0;
+//     for (let tries = 0; tries < 8; tries++) {
+//       x = Math.random() * w; y = Math.random() * h;
+//       if (!pos || Math.hypot(x - pos.x, y - pos.y) > 90) break;
+//     }
+//     setPos({ x, y }); setTease(v => v + 1);
+//   };
+//   const yes = () => { setN(v => v + 1); setPos(null); setTease(0); if (n + 1 >= list.length) love(); };
+//   if (finished) return <>
+//     <h2>Yay! 🥰</h2>
+//     <p className="rx-hand">I knew it all along 💖</p>
+//     <button className="rx-btn" onClick={done}>Next</button></>;
+//   return <>
+//     <h2>{title}</h2>
+//     <div className="rx-small">Question {n + 1} of {list.length}</div>
+//     <motion.p key={n} className="rx-q" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>{list[n]}</motion.p>
+//     <div className="rx-yn" ref={box}>
+//       <button className="rx-btn rx-yes" onClick={yes}>Yes 💖</button>
+//       <button className="rx-btn rx-no" style={pos ? { left: pos.x, top: pos.y, right: 'auto' } : undefined}
+//         onPointerEnter={dodge} onPointerDown={dodge} onTouchStart={dodge} onFocus={dodge} onClick={dodge}>No</button>
+//     </div>
+//     <div className="rx-small" style={{ minHeight: 22 }}>{tease ? TEASE[(tease - 1) % TEASE.length] : ''}</div></>;
+// }
+
+// /* ---------- 7. Memory tree: video jaisa heart-tree, photo frames latakte hain ---------- */
+// const CANOPY = (() => {
+//   const out = [];
+//   [[1, 40], [0.72, 28], [0.45, 16], [0.2, 6]].forEach(([k, cnt], r) => {
+//     for (let n = 0; n < cnt; n++) {
+//       const a = (n / cnt) * Math.PI * 2 + r * 0.4;
+//       const x = 16 * Math.sin(a) ** 3, y = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+//       out.push({ l: 50 + x * k * 2.6, tp: 38 - y * k * 1.9, f: 13 + ((n * 7 + r * 3) % 9), c: ['#ff9ab8', '#ffb3c6', '#ffe29a', '#ff7aa8'][(n + r) % 4], d: 1.2 + (out.length * 0.035) });
+//     }
+//   });
+//   return out;
+// })();
+// const FRAMES = [[30, 30, -6], [70, 28, 5], [50, 48, -2], [32, 60, 4], [68, 58, -5]];
+// function Tree({ photos, done }) {
+//   const [sel, setSel] = useState(null), [ready, setReady] = useState(false);
+//   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
+//   useEffect(() => { const id = setTimeout(() => setReady(true), 4200); return () => clearTimeout(id); }, []);
+//   return <>
+//     <h2>Our Tree of Memories 🌳</h2>
+//     <div className="rx-tree">
+//       <svg viewBox="0 0 300 340" className="rx-trunk">
+//         <motion.path d="M150 340 C150 290 148 250 150 200 M150 240 C120 220 105 198 85 172 M150 228 C180 208 198 188 215 162 M150 208 C150 182 150 160 150 140"
+//           stroke="#5a3a2a" strokeWidth="9" strokeLinecap="round" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.6 }} />
+//       </svg>
+//       {CANOPY.map((h, n) => <span key={n} className="rx-leaf" style={{ left: h.l + '%', top: h.tp + '%', fontSize: h.f, color: h.c, animationDelay: h.d + 's' }}>♥</span>)}
+//       {items.map((p, n) => <motion.button key={n} className="rx-frame" style={{ left: FRAMES[n][0] + '%', top: FRAMES[n][1] + '%', rotate: FRAMES[n][2] }}
+//         initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 2.4 + n * 0.4, type: 'spring' }} onClick={() => setSel(p || 'ph')}>
+//         {p ? <img src={p} alt="" /> : <span>📸</span>}</motion.button>)}
+//     </div>
+//     <p className="rx-small">Tap any frame</p>
+//     {ready && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={done}>Next</motion.button>}
+//     {sel && typeof document !== 'undefined' && createPortal(
+//       <div className="rx-zoom" onClick={() => setSel(null)}>
+//         <div className="rx-zoomcard">{sel === 'ph' ? <span>📸</span> : <img src={sel} alt="" />}</div></div>, document.body)}</>;
+// }
+
+// /* ---------- 8. Letter + 9. Final (same as before) ---------- */
+// function Letter({ title, text, btn, done }) {
 //   const [n, setN] = useState(0), box = useRef();
 //   const fin = n >= text.length;
 //   useEffect(() => {
@@ -319,28 +1232,24 @@
 //   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [n]);
 //   return <>
 //     <h2>{title}</h2>
-//     <div className="cx-page" ref={box}><div className="cx-slug">INT. DIL, RAAT</div>{text.slice(0, n)}{!fin && <span className="cx-caret" />}</div>
-//     {fin ? <button className="cx-btn" onClick={done}>{btn}</button> : <button className="cx-link" onClick={() => setN(text.length)}>skip</button>}</>;
+//     <div className="rx-letter" ref={box}>{text.slice(0, n)}{!fin && <span className="rx-caret" />}</div>
+//     {fin ? <button className="rx-btn" onClick={done}>{btn}</button> : <button className="rx-link" onClick={() => setN(text.length)}>skip</button>}</>;
 // }
 
-// function Credits({ t, name, pet, replay }) {
-//   const [end, setEnd] = useState(false);
-//   useEffect(() => { const id = setTimeout(() => setEnd(true), 15500); return () => clearTimeout(id); }, []);
-//   useEffect(() => { if (end) boom(); }, [end]);
-//   const rows = [
-//     ['Starring', `${name} as meri sabse favorite insaan`], ['Directed by', 'Main, sirf tumhare liye'],
-//     ['Produced by', 'Tumhari muskurahat'], ['Music by', 'Tumhari hansi'],
-//     ['Special effects', 'Wo dil ki dhak-dhak'], ['Disclaimer', 'Is film me koi dil toota nahi, sirf chura gaya']
-//   ];
-//   if (end) return <motion.div className="cx-end" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-//     <div className="cx-pets"><Sticker kind={pet} /></div>
-//     <small>The End</small><h1>{t.finalTitle} ❤️</h1><p>{t.finalSub}</p>
-//     <button className="cx-btn" onClick={replay}>Replay</button></motion.div>;
-//   return <div className="cx-roll">
-//     <div className="cx-credits">{rows.map(([a, b]) => <div key={a}><small>{a}</small><p>{b}</p></div>)}</div>
-//     <button className="cx-skip" onClick={() => setEnd(true)}>skip</button></div>;
+// function Final({ name, t, replay }) {
+//   useEffect(() => {
+//     const a = setTimeout(love, 500), b = setTimeout(love, 1500);
+//     return () => { clearTimeout(a); clearTimeout(b); };
+//   }, []);
+//   return <>
+//     <motion.svg viewBox="0 0 100 90" className="rx-bigsvg" animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 1.4 }}>
+//       <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+//       <path d={HEART} fill="url(#fg)" />
+//       <text x="50" y="46" textAnchor="middle" className="rx-hname" fontSize={Math.min(16, 120 / Math.max(name.length, 1))}>{name}</text>
+//     </motion.svg>
+//     <h1>{t.finalTitle}</h1><p className="rx-hand">{t.finalSub}</p>
+//     <button className="rx-btn" onClick={replay}>Watch again</button></>;
 // }
-
 
 
 
@@ -352,13 +1261,15 @@
 
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Sticker } from './Art';
 import './premium.css';
 
-// "Love Story": khat ka seal todo -> kahani ke pages -> do dil milao -> heart yaadein -> letter -> finale
-const SCENES = ['seal', 'story', 'meet', 'photos', 'letter', 'final'];
+// Flow: lifafa -> heart par teer -> cake gir ke bane -> candle phoonk -> Little Moments (dil me photos)
+//       -> love scanner (finger hold) -> 3 questions (No bhaagta hai) -> memory tree (photo frames) -> letter -> last surprise
+const SCENES = ['seal', 'arrows', 'cake', 'candle', 'photos', 'scan', 'questions', 'tree', 'letter', 'final'];
 const HEART = 'M50 88 C10 55 0 30 0 20 C0 8 10 0 22 0 C34 0 45 8 50 18 C55 8 66 0 78 0 C90 0 100 8 100 20 C100 30 90 55 50 88Z';
 const COL = ['#ffd6e0', '#ff7aa8', '#ffe29a', '#ffffff'];
 function love() {
@@ -371,17 +1282,19 @@ export default function PremiumExperience({ card }) {
   const [i, setI] = useState(0), [k, setK] = useState(0);
   const next = () => setI(n => Math.min(n + 1, SCENES.length - 1));
   const s = SCENES[i], t = card.texts, name = card.recipientName, pet = card.options?.friendSticker || 'bunny';
-  const chapters = [t.r1, t.r2, t.r3, t.r4, t.r5, t.r6];
   return <main className="rx">
     <div className="rx-sun" /><Petals dense={s === 'final'} />
-    {/* exit animation hata di: scene badalte waqt screen khali reh jati thi */}
     <motion.section key={s + k} className="rx-scene" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-        {s === 'seal' && <Seal t={t} done={next} />}
-        {s === 'story' && <Story chapters={chapters} done={next} />}
-        {s === 'meet' && <Meet pet={pet} done={next} />}
-        {s === 'photos' && <Gallery photos={card.photos || []} title={t.momentsTitle} done={next} />}
-        {s === 'letter' && <Letter title={t.envelopeTitle} text={card.letter} btn={t.lastButton} done={next} />}
-        {s === 'final' && <Final name={name} t={t} replay={() => { setI(0); setK(x => x + 1); }} />}
+      {s === 'seal' && <Seal t={t} done={next} />}
+      {s === 'arrows' && <Arrows t={t} name={name} done={next} />}
+      {s === 'cake' && <CakeBuild done={next} />}
+      {s === 'candle' && <Candle done={next} />}
+      {s === 'photos' && <Gallery photos={card.photos || []} title={t.momentsTitle || 'Little Moments'} done={next} />}
+      {s === 'scan' && <Scanner title={t.scanTitle || 'Love scanner'} hint={t.scanHint || 'Press and hold your finger on the scanner'} result={t.scanResult || 'Match found: 100% in love 💖'} name={name} done={next} />}
+      {s === 'questions' && <Questions title={t.qTitle || 'Quick questions'} qs={[t.q1, t.q2, t.q3]} done={next} />}
+      {s === 'tree' && <Tree photos={card.treePhotos || []} done={next} />}
+      {s === 'letter' && <Letter title={t.envelopeTitle} text={card.letter} btn={t.lastButton} done={next} />}
+      {s === 'final' && <Final name={name} t={t} replay={() => { setI(0); setK(x => x + 1); }} />}
     </motion.section>
   </main>;
 }
@@ -394,6 +1307,7 @@ function Petals({ dense }) {
   return p.map(x => <span key={(dense ? 'd' : 'n') + x.n} className="rx-petal" style={{ left: x.l + '%', animationDuration: x.d + 's', animationDelay: x.s + 's', fontSize: x.f }}>{x.e}</span>);
 }
 
+/* ---------- 1. Lifafa (same as before) ---------- */
 function Seal({ t, done }) {
   const [open, setOpen] = useState(false);
   return <>
@@ -408,55 +1322,129 @@ function Seal({ t, done }) {
         transition={open ? { duration: 0.6 } : { repeat: Infinity, duration: 1.6 }}>♥</motion.div>
     </div>
     {open
-      ? <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }} onClick={done}>Kahani shuru karo</motion.button>
-      : <p className="rx-small">Seal par tap karo</p>}</>;
+      ? <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }} onClick={done}>Continue</motion.button>
+      : <p className="rx-small">Tap the seal</p>}</>;
 }
 
-function Story({ chapters, done }) {
-  const [n, setN] = useState(0);
-  const last = n >= chapters.length - 1;
+/* ---------- 2. Heart par teer, phir Happy Birthday ---------- */
+const ANGLES = [-22, 165, 68];
+function Arrows({ t, name, done }) {
+  const [n, setN] = useState(0), [boom, setBoom] = useState(false);
+  const timers = useRef([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  const hit = () => {
+    if (boom || n >= 3) return;
+    const m = n + 1; setN(m);
+    if (m === 3) {
+      timers.current.push(setTimeout(() => { setBoom(true); love(); }, 800));
+      timers.current.push(setTimeout(done, 5200));
+    }
+  };
   return <>
-    <h2>Hamari kahani</h2>
-    <div className="rx-book"><AnimatePresence mode="wait">
-      <motion.div key={n} className="rx-page" style={{ transformPerspective: 900, transformOrigin: 'left center' }}
-        initial={{ rotateY: 80, opacity: 0 }} animate={{ rotateY: 0, opacity: 1 }} exit={{ rotateY: -80, opacity: 0 }} transition={{ duration: 0.55 }}>
-        <small>Adhyay {n + 1}</small><p>{chapters[n]}</p><span>🌹</span>
-      </motion.div></AnimatePresence></div>
-    <div className="rx-hearts">{chapters.map((_, x) => <i key={x} className={x <= n ? 'on' : ''}>♥</i>)}</div>
-    <button className="rx-btn" onClick={() => (last ? done() : setN(n + 1))}>{last ? 'Aage badho' : 'Page palto'}</button></>;
-}
-
-function Meet({ pet, done }) {
-  const lx = useMotionValue(0), rx = useMotionValue(0), [met, setMet] = useState(false);
-  const other = pet === 'bear' ? 'bunny' : 'bear';
-  useEffect(() => {
-    const chk = () => { if (lx.get() >= 55 && rx.get() <= -55) setMet(true); };
-    const a = lx.on('change', chk), b = rx.on('change', chk);
-    return () => { a(); b(); };
-  }, []);
-  useEffect(() => {
-    if (!met) return;
-    love();
-    const id = setTimeout(done, 3500); // button na dabe to bhi apne aap aage badh jaye
-    return () => clearTimeout(id);
-  }, [met]);
-  return <>
-    <h2>{met ? 'Aakhir mil gaye ❤️' : 'Dono ko paas laao'}</h2>
-    <div className="rx-stage">
-      <motion.div className="rx-pal l" style={{ x: lx }} drag={met ? false : 'x'} dragConstraints={{ left: 0, right: 90 }} dragElastic={0} dragMomentum={false}><Sticker kind={pet} /></motion.div>
-      <motion.div className="rx-pal r" style={{ x: rx }} drag={met ? false : 'x'} dragConstraints={{ left: -90, right: 0 }} dragElastic={0} dragMomentum={false}><Sticker kind={other} /></motion.div>
-      {met && <motion.div className="rx-bigheart" initial={{ scale: 0, y: 20 }} animate={{ scale: 1, y: -60 }}>💖</motion.div>}
+    <h2>{t.strikeTitle || 'Aim for the heart'}</h2>
+    <div className="rx-hit" onClick={hit}>
+      <motion.svg key={n} viewBox="0 0 100 90" className="rx-hitheart"
+        animate={n ? { scale: [1, 0.82, 1.12, 1] } : { scale: [1, 1.06, 1] }}
+        transition={n ? { duration: 0.45 } : { repeat: Infinity, duration: 1.4 }}>
+        <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff9ab8" /><stop offset="1" stopColor="#e0245e" /></linearGradient></defs>
+        <path d={HEART} fill="url(#hg)" />
+      </motion.svg>
+      {ANGLES.slice(0, n).map((a, j) => <div key={j} className="rx-arrowwrap" style={{ transform: `rotate(${a}deg)` }}>
+        <motion.svg viewBox="0 0 130 20" className="rx-arrow" initial={{ x: -320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.3, ease: 'easeIn' }}>
+          <line x1="10" y1="10" x2="118" y2="10" stroke="#fff3d6" strokeWidth="3" strokeLinecap="round" />
+          <polygon points="116,2 130,10 116,18" fill="#ffd59a" />
+          <polygon points="0,1 16,10 0,19 6,10" fill="#ffffff" />
+        </motion.svg></div>)}
     </div>
-    <p className="rx-small">{met ? 'Ab inhe koi juda nahi kar sakta' : 'Ek-ek ko pakdo aur khiskao'}</p>
-    {met ? <button className="rx-btn" onClick={done}>Aage badho</button> : <button className="rx-link" onClick={done}>skip</button>}</>;
+    <p className="rx-small">{n >= 3 ? '💘' : `Tap the heart to shoot an arrow (${n}/3)`}</p>
+    {boom && typeof document !== 'undefined' && createPortal(
+      <div className="rx-boom">
+        <motion.i className="rx-circle" initial={{ scale: 0 }} animate={{ scale: 34 }} transition={{ duration: 1.1, ease: 'easeIn' }} />
+        <motion.div className="rx-hb" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1, duration: 0.7 }}>
+          <small>make a wish...</small><h1>Happy Birthday</h1><b>{name}</b>
+        </motion.div>
+      </div>, document.body)}</>;
 }
 
+/* ---------- 3. Cake upar se gir ke banta hai ---------- */
+function Piece({ i, build, children }) {
+  if (!build) return <g>{children}</g>;
+  return <motion.g initial={{ y: -360, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', bounce: 0.35, duration: 0.9, delay: 0.4 + i * 0.8 }}>{children}</motion.g>;
+}
+function PinkCake({ lit = false, build = false }) {
+  return <svg viewBox="0 0 200 220" aria-label="cake">
+    <Piece i={0} build={build}><ellipse cx="100" cy="196" rx="88" ry="10" fill="#fff3f7" /><ellipse cx="100" cy="192" rx="80" ry="8" fill="#f6d9e3" /></Piece>
+    <Piece i={1} build={build}><rect x="24" y="138" width="152" height="54" rx="14" fill="#f48fb1" /><rect x="24" y="138" width="152" height="15" rx="8" fill="#fff" />
+      {[44, 76, 108, 140].map(x => <circle key={x} cx={x + 6} cy="172" r="5" fill="#ffe29a" />)}</Piece>
+    <Piece i={2} build={build}><rect x="44" y="96" width="112" height="44" rx="12" fill="#f7a8c4" /><rect x="44" y="96" width="112" height="13" rx="7" fill="#fff" /></Piece>
+    <Piece i={3} build={build}><rect x="64" y="58" width="72" height="40" rx="11" fill="#f9bfd4" /><rect x="64" y="58" width="72" height="12" rx="6" fill="#fff" />
+      <circle cx="84" cy="86" r="4" fill="#ff7aa8" /><circle cx="116" cy="86" r="4" fill="#ff7aa8" /></Piece>
+    <Piece i={4} build={build}><circle cx="100" cy="52" r="7" fill="#e0245e" /><path d="M100 46 q6 -10 12 -12" stroke="#4f7f5a" strokeWidth="2" fill="none" /></Piece>
+    <Piece i={5} build={build}><rect x="96" y="14" width="8" height="30" rx="3" fill="#ffd166" />
+      {lit && <g className="fl"><ellipse cx="100" cy="6" rx="7" ry="12" fill="#ffb347" /><ellipse cx="100" cy="9" rx="3.5" ry="7" fill="#fff3b0" /></g>}</Piece>
+  </svg>;
+}
+function CakeBuild({ done }) {
+  useEffect(() => { const id = setTimeout(done, 6000); return () => clearTimeout(id); }, []);
+  return <>
+    <h2>First things first 🎂</h2>
+    <div className="rx-cake"><PinkCake build /></div>
+    <p className="rx-small">Your cake is being made...</p></>;
+}
+
+/* ---------- 4. Candle: phoonk maro ya tap karo ---------- */
+function Candle({ done }) {
+  const [lit, setLit] = useState(true);
+  const [msg, setMsg] = useState('');
+  const stopMic = useRef(() => {});
+  useEffect(() => () => stopMic.current(), []);
+  const blow = () => { if (!lit) return; setLit(false); love(); setTimeout(done, 1600); };
+  async function listen() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      const ctx = new (window.AudioContext || window.webkitAudioContext)(), an = ctx.createAnalyser(); an.fftSize = 1024;
+      await ctx.resume();
+      ctx.createMediaStreamSource(stream).connect(an);
+      const buf = new Float32Array(an.fftSize);
+      setMsg('Stay quiet for a second...');
+      const t0 = performance.now(); let base = 0, n = 0, hits = 0, live = true, said = false;
+      stopMic.current = () => { live = false; stream.getTracks().forEach(x => x.stop()); ctx.close().catch(() => {}); stopMic.current = () => {}; };
+      const tick = () => {
+        if (!live) return;
+        an.getFloatTimeDomainData(buf);
+        let sum = 0; for (const v of buf) sum += v * v;
+        const rms = Math.sqrt(sum / buf.length);
+        if (performance.now() - t0 < 1000) { base += rms; n++; }      // pehle 1 sec shaant awaaz naapo
+        else {
+          if (!said) { said = true; setMsg('Now blow hard into the mic!'); }
+          const limit = Math.max((base / Math.max(n, 1)) * 5, 0.12);   // pehle se zyada strict
+          hits = rms > limit ? hits + 1 : 0;
+          if (hits >= 12) { stopMic.current(); blow(); return; }       // lagbhag 0.2 sec lagatar tez awaaz
+        }
+        requestAnimationFrame(tick);
+      };
+      tick();
+    } catch (e) {
+      const n = e?.name || '';
+      setMsg(!navigator.mediaDevices ? 'Mic is not supported in this browser. Open in Chrome/Safari, or tap the cake'
+        : n === 'NotAllowedError' ? "Mic is blocked. Allow Microphone in your browser's site settings, or tap the cake"
+        : 'Mic failed (' + n + '). Tap the cake');
+    }
+  }
+  return <>
+    <h2>Blow the candle</h2>
+    <div className="rx-cake" onClick={blow}><PinkCake lit={lit} /></div>
+    <button className="rx-btn" onClick={listen}>🎤 Blow into the mic</button><div className="rx-small">{msg}</div></>;
+}
+
+/* ---------- 5. Little Moments (dil me photos) ---------- */
 function Gallery({ photos, title, done }) {
   const pos = [[10, 0, 130], [160, 40, 115], [20, 150, 120], [165, 190, 125], [90, 290, 105]];
   const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
   return <>
     <h2>{title}</h2>
-    <button className="rx-btn" onClick={done}>Aage</button>
+    <button className="rx-btn" onClick={done}>Next</button>
     <div className="rx-gal">{items.map((p, n) => <motion.svg key={n} viewBox="0 0 100 90" className="rx-hf" style={{ left: pos[n][0], top: pos[n][1], width: pos[n][2] }}
       animate={{ y: [0, -10, 0], rotate: n % 2 ? [4, -2, 4] : [-4, 2, -4] }} transition={{ repeat: Infinity, duration: 4 + n, ease: 'easeInOut' }}>
       <defs><clipPath id={'hc' + n}><path d={HEART} /></clipPath></defs>
@@ -467,6 +1455,103 @@ function Gallery({ photos, title, done }) {
     </motion.svg>)}</div></>;
 }
 
+/* ---------- 6. Love scanner: ungli rakho, scan hota hai, phone vibrate karta hai, result chaukata hai ---------- */
+function Scanner({ title, hint, result, name, done }) {
+  const [p, setP] = useState(0), [ok, setOk] = useState(false), tm = useRef();
+  const vib = v => { try { navigator.vibrate && navigator.vibrate(v); } catch (e) { /* ignore */ } };
+  const start = () => { if (ok) return; clearInterval(tm.current); vib(2200); tm.current = setInterval(() => setP(v => Math.min(v + 1.4, 100)), 30); };
+  const stop = () => { clearInterval(tm.current); if (!ok) { setP(0); vib(0); } };
+  useEffect(() => () => { clearInterval(tm.current); vib(0); }, []);
+  useEffect(() => {
+    if (p < 100 || ok) return;
+    clearInterval(tm.current); setOk(true); love(); vib([200, 100, 200]);
+  }, [p]);
+  const scanning = p > 0 && !ok;
+  return <>
+    <h2>{title}</h2><p className="rx-small">{hint}</p>
+    <div className={'rx-scan' + (scanning ? ' shake' : '')} onPointerDown={start} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onContextMenu={e => e.preventDefault()}>
+      <svg viewBox="0 0 100 100" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity={ok ? 1 : 0.85}>
+        <path d="M30 40 A22 22 0 0 1 70 40" /><path d="M22 52 A30 30 0 0 1 78 52 L78 60" /><path d="M38 78 C34 66 34 54 40 46 A12 12 0 0 1 60 46 C62 58 62 68 58 80" />
+        <path d="M50 50 L50 84" strokeDasharray="4 6" /><path d="M30 70 C28 60 28 50 32 44" /><path d="M70 70 C72 60 72 52 70 46" />
+      </svg>
+      {scanning && <div className="rx-scanline" style={{ top: p + '%' }} />}
+    </div>
+    <div className="rx-result">{ok ? `${name}: ${result}` : scanning ? `Scanning ${name}... ${Math.floor(p)}%` : ''}</div>
+    {ok && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} onClick={done}>Next</motion.button>}</>;
+}
+
+/* ---------- 6b. 3 questions: No button bhaagta hai ---------- */
+const TEASE = ['Nice try 😜', 'Are you sure? 🥺', 'Too slow! 😆', 'Just say yes 💖'];
+function Questions({ title, qs, done }) {
+  const list = qs.filter(Boolean);
+  const [n, setN] = useState(0), [pos, setPos] = useState(null), [tease, setTease] = useState(0);
+  const box = useRef();
+  const finished = n >= list.length;
+  const dodge = e => {
+    if (e?.cancelable) e.preventDefault();
+    const b = box.current; if (!b) return;
+    const w = Math.max(b.clientWidth - 110, 0), h = Math.max(b.clientHeight - 50, 0);
+    let x = 0, y = 0;
+    for (let tries = 0; tries < 8; tries++) {
+      x = Math.random() * w; y = Math.random() * h;
+      if (!pos || Math.hypot(x - pos.x, y - pos.y) > 90) break;
+    }
+    setPos({ x, y }); setTease(v => v + 1);
+  };
+  const yes = () => { setN(v => v + 1); setPos(null); setTease(0); if (n + 1 >= list.length) love(); };
+  if (finished) return <>
+    <h2>Yay! 🥰</h2>
+    <p className="rx-hand">I knew it all along 💖</p>
+    <button className="rx-btn" onClick={done}>Next</button></>;
+  return <>
+    <h2>{title}</h2>
+    <div className="rx-small">Question {n + 1} of {list.length}</div>
+    <motion.p key={n} className="rx-q" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>{list[n]}</motion.p>
+    <div className="rx-yn" ref={box}>
+      <button className="rx-btn rx-yes" onClick={yes}>Yes 💖</button>
+      <button className="rx-btn rx-no" style={pos ? { left: pos.x, top: pos.y, right: 'auto' } : undefined}
+        onPointerEnter={dodge} onPointerDown={dodge} onTouchStart={dodge} onFocus={dodge} onClick={dodge}>No</button>
+    </div>
+    <div className="rx-small" style={{ minHeight: 22 }}>{tease ? TEASE[(tease - 1) % TEASE.length] : ''}</div></>;
+}
+
+/* ---------- 7. Memory tree: video jaisa heart-tree, photo frames latakte hain ---------- */
+const CANOPY = (() => {
+  const out = [];
+  [[1, 40], [0.72, 28], [0.45, 16], [0.2, 6]].forEach(([k, cnt], r) => {
+    for (let n = 0; n < cnt; n++) {
+      const a = (n / cnt) * Math.PI * 2 + r * 0.4;
+      const x = 16 * Math.sin(a) ** 3, y = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+      out.push({ l: 50 + x * k * 2.6, tp: 38 - y * k * 1.9, f: 13 + ((n * 7 + r * 3) % 9), c: ['#ff9ab8', '#ffb3c6', '#ffe29a', '#ff7aa8'][(n + r) % 4], d: 1.2 + (out.length * 0.035) });
+    }
+  });
+  return out;
+})();
+const FRAMES = [[30, 30, -6], [70, 28, 5], [50, 48, -2], [32, 60, 4], [68, 58, -5]];
+function Tree({ photos, done }) {
+  const [sel, setSel] = useState(null), [ready, setReady] = useState(false);
+  const items = (photos.length ? photos : [null, null, null]).slice(0, 5);
+  useEffect(() => { const id = setTimeout(() => setReady(true), 4200); return () => clearTimeout(id); }, []);
+  return <>
+    <h2>Our Tree of Memories 🌳</h2>
+    <div className="rx-tree">
+      <svg viewBox="0 0 300 340" className="rx-trunk">
+        <motion.path d="M150 340 C150 290 148 250 150 200 M150 240 C120 220 105 198 85 172 M150 228 C180 208 198 188 215 162 M150 208 C150 182 150 160 150 140"
+          stroke="#5a3a2a" strokeWidth="9" strokeLinecap="round" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.6 }} />
+      </svg>
+      {CANOPY.map((h, n) => <span key={n} className="rx-leaf" style={{ left: h.l + '%', top: h.tp + '%', fontSize: h.f, color: h.c, animationDelay: h.d + 's' }}>♥</span>)}
+      {items.map((p, n) => <motion.button key={n} className="rx-frame" style={{ left: FRAMES[n][0] + '%', top: FRAMES[n][1] + '%', rotate: FRAMES[n][2] }}
+        initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 2.4 + n * 0.4, type: 'spring' }} onClick={() => setSel(p || 'ph')}>
+        {p ? <img src={p} alt="" /> : <span>📸</span>}</motion.button>)}
+    </div>
+    <p className="rx-small">Tap any frame</p>
+    {ready && <motion.button className="rx-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={done}>Next</motion.button>}
+    {sel && typeof document !== 'undefined' && createPortal(
+      <div className="rx-zoom" onClick={() => setSel(null)}>
+        <div className="rx-zoomcard">{sel === 'ph' ? <span>📸</span> : <img src={sel} alt="" />}</div></div>, document.body)}</>;
+}
+
+/* ---------- 8. Letter + 9. Final (same as before) ---------- */
 function Letter({ title, text, btn, done }) {
   const [n, setN] = useState(0), box = useRef();
   const fin = n >= text.length;
@@ -494,5 +1579,5 @@ function Final({ name, t, replay }) {
       <text x="50" y="46" textAnchor="middle" className="rx-hname" fontSize={Math.min(16, 120 / Math.max(name.length, 1))}>{name}</text>
     </motion.svg>
     <h1>{t.finalTitle}</h1><p className="rx-hand">{t.finalSub}</p>
-    <button className="rx-btn" onClick={replay}>Phir se dekho</button></>;
+    <button className="rx-btn" onClick={replay}>Watch again</button></>;
 }
