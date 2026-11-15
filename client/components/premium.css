@@ -1,0 +1,31 @@
+.px{position:relative;min-height:100dvh;display:grid;place-items:center;padding:56px 24px 32px;overflow:hidden;color:#ffe9f1;background:radial-gradient(120% 80% at 50% 115%,#7a1f4e 0%,#2a1245 45%,#0a0a1f 100%)}
+.px-sky{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.px-heart{position:absolute;bottom:-40px;opacity:0;pointer-events:none;z-index:1;animation:pxup linear infinite}
+@keyframes pxup{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.7}100%{transform:translateY(-110dvh) scale(1.2);opacity:0}}
+.px-scene{position:relative;z-index:2;width:100%;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px}
+.px h1,.px h2{font-family:var(--hand),cursive;font-weight:600;margin:0;color:#ffc2d8;text-shadow:0 0 24px #ff5f9e66}
+.px h1{font-size:2.8rem;line-height:1.1}.px h2{font-size:2.1rem}
+.px p{margin:0;opacity:.85}
+.px-btn{border:1px solid #ffffff55;border-radius:999px;padding:13px 30px;background:linear-gradient(135deg,#ff5f9e,#c2418a);color:#fff;font:600 1rem var(--serif),serif;cursor:pointer;box-shadow:0 0 28px #ff5f9e66}
+.px-skip{background:none;border:0;color:#ffffff88;cursor:pointer;font:inherit}
+.px-caret{display:inline-block;width:2px;height:1em;background:#ff8fb5;margin-left:2px;vertical-align:-.12em;animation:pxb .8s steps(1) infinite}
+@keyframes pxb{50%{opacity:0}}
+.px-dots{position:absolute;top:20px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:3}
+.px-dots i{width:18px;height:3px;border-radius:2px;background:#ffffff33;transition:background .4s}.px-dots i.on{background:#ff8fb5}
+.px-glow{font-size:5rem;animation:pxbeat 1.4s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff5f9e)}
+@keyframes pxbeat{50%{transform:scale(1.15)}}
+.px-svg{width:100%;height:300px;overflow:visible}
+.px-reason{min-height:64px;font-family:var(--hand),cursive;font-size:1.5rem;line-height:1.25}
+.px-wish{position:relative;width:170px;height:170px;display:grid;place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+.px-wish svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.px-wish span{font-size:4.5rem;transition:transform .2s}
+.px-lantern{position:absolute;font-size:4rem;filter:drop-shadow(0 0 24px #ffb347);pointer-events:none}
+.px-reel{position:relative;width:260px;height:340px}
+.px-pol{position:absolute;inset:0;background:#fff;border-radius:6px;padding:12px 12px 52px;box-shadow:0 20px 50px #0008;color:#7a2e4d}
+.px-pol .im{width:100%;height:100%;overflow:hidden;border-radius:3px;background:#f7d6e0;display:grid;place-items:center;font-size:4rem}
+.px-pol img{width:100%;height:100%;object-fit:cover;animation:pxk 6s ease-out both}
+@keyframes pxk{from{transform:scale(1)}to{transform:scale(1.12)}}
+.px-pol b{position:absolute;bottom:12px;left:0;right:0;font:400 1.5rem var(--hand),cursive}
+.px-letter{width:100%;max-height:58dvh;overflow:auto;text-align:left;white-space:pre-wrap;padding:22px;border-radius:18px;background:#ffffff14;border:1px solid #ffffff2e;backdrop-filter:blur(10px);font-family:var(--hand),cursive;font-size:1.45rem;line-height:1.5}
+.px-pets svg{width:110px}
+@media (prefers-reduced-motion:reduce){.px-heart,.px-glow{animation:none}}

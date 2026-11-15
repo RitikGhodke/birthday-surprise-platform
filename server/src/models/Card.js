@@ -4,7 +4,7 @@ const Card = new mongoose.Schema({
   recipientName: { type: String, required: true, maxlength: 60, trim: true },
   // birthDate: { month: Number, day: Number },
   birthDate: { month: String, day: Number },
-  style: { type: String, enum: ['card', 'arcade', 'fruitninja'], default: 'card' },
+  style: { type: String, enum: ['card', 'arcade', 'fruitninja', 'premium'], default: 'card' },
   options: { cake: String, bond: String, friendSticker: String },
   balloonWords: [{ type: String, maxlength: 20 }],
   letter: { type: String, maxlength: 2000 },
