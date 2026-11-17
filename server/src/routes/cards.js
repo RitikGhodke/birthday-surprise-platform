@@ -262,23 +262,26 @@ router.patch('/:slug', owner, async (req, res) => {
 const photoRoutes = (field, path) => {
   router.post(`/:slug/${path}`, owner, upload.array('photos', 5), async (req, res) => {
     if (!editInfo(req.card).editOpen) return res.status(403).json({ error: 'Edit ka time khatam ho gaya' });
-    const list = req.card[field];
-    const files = (req.files || []).slice(0, Math.max(MAX_PHOTOS - list.length, 0));
+    const room = Math.max(MAX_PHOTOS - (req.card[field] || []).length, 0);
+    const files = (req.files || []).slice(0, room);
+    const added = [];
     for (const f of files) {
       const r = await new Promise((ok, no) => cloudinary.uploader.upload_stream(
         { folder: `birthday/${req.card.slug}/${field}` }, (e, x) => (e ? no(e) : ok(x))).end(f.buffer));
-      list.push({ url: r.secure_url, publicId: r.public_id });
+      added.push({ url: r.secure_url, publicId: r.public_id });
     }
-    await req.card.save();
-    res.json(mine(req.card));
+    const card = await Card.findByIdAndUpdate(req.card._id,
+      { $push: { [field]: { $each: added } } }, { new: true });
+    res.json(mine(card));
   });
+
   router.delete(`/:slug/${path}/:publicId`, owner, async (req, res) => {
     if (!editInfo(req.card).editOpen) return res.status(403).json({ error: 'Edit ka time khatam ho gaya' });
-    const id = decodeURIComponent(req.params.publicId);
-    req.card[field] = req.card[field].filter(p => p.publicId !== id);
-    await cloudinary.uploader.destroy(id);
-    await req.card.save();
-    res.json(mine(req.card));
+    const id = req.params.publicId; // Express already decode kar deta hai
+    const card = await Card.findByIdAndUpdate(req.card._id,
+      { $pull: { [field]: { publicId: id } } }, { new: true });
+    await cloudinary.uploader.destroy(id, { invalidate: true });
+    res.json(mine(card));
   });
 };
 photoRoutes('photos', 'photos');
