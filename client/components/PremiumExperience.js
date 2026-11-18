@@ -1401,10 +1401,13 @@ function Candle({ done }) {
   const blow = () => { if (!lit) return; setLit(false); love(); setTimeout(done, 1600); };
   async function listen() {
     try {
+      // AudioContext click ke turant andar banao (iPhone ke liye zaruri)
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      ctx.resume();
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-      const ctx = new (window.AudioContext || window.webkitAudioContext)(), an = ctx.createAnalyser(); an.fftSize = 1024;
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true } });
       await ctx.resume();
+      const an = ctx.createAnalyser(); an.fftSize = 1024;
       ctx.createMediaStreamSource(stream).connect(an);
       const buf = new Float32Array(an.fftSize);
       setMsg('Stay quiet for a second...');
@@ -1415,19 +1418,19 @@ function Candle({ done }) {
         an.getFloatTimeDomainData(buf);
         let sum = 0; for (const v of buf) sum += v * v;
         const rms = Math.sqrt(sum / buf.length);
-        if (performance.now() - t0 < 1000) { base += rms; n++; }      // pehle 1 sec shaant awaaz naapo
+        if (performance.now() - t0 < 1000) { base += rms; n++; }
         else {
-          if (!said) { said = true; setMsg('Now blow hard into the mic!'); }
-          const limit = Math.max((base / Math.max(n, 1)) * 5, 0.12);   // pehle se zyada strict
+          if (!said) { said = true; setMsg('Now blow into the mic!'); }
+          const limit = Math.max((base / Math.max(n, 1)) * 3, 0.04);
           hits = rms > limit ? hits + 1 : 0;
-          if (hits >= 12) { stopMic.current(); blow(); return; }       // lagbhag 0.2 sec lagatar tez awaaz
+          if (hits >= 6) { stopMic.current(); blow(); return; }
         }
         requestAnimationFrame(tick);
       };
       tick();
     } catch (e) {
       const n = e?.name || '';
-      setMsg(!navigator.mediaDevices ? 'Mic is not supported in this browser. Open in Chrome/Safari, or tap the cake'
+      setMsg(!navigator.mediaDevices ? 'Mic is not supported here. Open in Chrome/Safari, or tap the cake'
         : n === 'NotAllowedError' ? "Mic is blocked. Allow Microphone in your browser's site settings, or tap the cake"
         : 'Mic failed (' + n + '). Tap the cake');
     }
